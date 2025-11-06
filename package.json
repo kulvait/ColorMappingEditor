@@ -1,27 +1,41 @@
 {
-  "name": "transfer-function-editor",
-  "version": "1.0.0",
-  "description": "A simple transfer function editor.",
-  "source": "src/index.ts",
-  "module": "dist/transfer-function-editor.modern.js",
-  "unpkg": "dist/transfer-function-editor.umd.js",
-  "amdName": "TransferFunctionEditor",
-  "scripts": {
-    "build": "microbundle build",
-    "watch": "microbundle watch",
-    "format": "prettier --write ./src"
+  "name": "color-mapping-editor",
+  "version": "1.1.0",
+  "description": "Fork of the DLR-SC Transfer Function Editor, integrating its D3-based color mapping with React and vtk.js.",
+  "authors": [
+    "Original by German Aerospace Center (DLR)",
+    "Fork by Vojtech Kulvait"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:kulvait/ColorMappingEditor.git"
   },
   "keywords": [
+    "react",
+    "vtk.js",
     "transfer function",
-    "tf",
-    "transparency",
-    "color",
+    "color mapping",
+    "opacity",
     "d3",
-    "interpolation",
-    "paraview"
+    "visualization"
   ],
-  "author": "German Aerospace Center (DLR)",
-  "license": "MIT",
+  "type": "module",
+  "main": "dist/color-mapping-editor.umd.js",
+  "module": "dist/color-mapping-editor.es.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "format": "prettier --write .",
+    "clean": "rm -rf node_modules dist",
+    "lint": "biome check .",
+    "test": "vitest run"
+  },
   "dependencies": {
     "d3-color": "^3.1.0",
     "d3-hsv": "^0.1.0",
@@ -29,14 +43,27 @@
     "d3-scale": "^3.3.0",
     "object-assign-deep": "^0.4.0"
   },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0",
+    "vtk.js": ">=30.0.0"
+  },
   "devDependencies": {
-    "@types/d3-color": "^3.1.0",
-    "@types/d3-hsv": "^0.1.4",
-    "@types/d3-interpolate": "^3.0.1",
-    "@types/d3-scale": "^3.3.2",
-    "microbundle": "^0.13.0",
-    "prettier": "^2.8.4",
-    "ts-node": "^10.0.0",
-    "typescript": "^4.9.5"
-  }
+    "@eslint/js": "^9.37.0",
+    "@types/node": "^24.7.2",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.0.4",
+    "eslint": "^9.37.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.23",
+    "gh-pages": "^6.3.0",
+    "globals": "^16.4.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^4.0.7"
+  },
+  "packageManager": "pnpm@10.18.1"
 }
