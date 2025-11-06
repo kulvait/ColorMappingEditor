@@ -1,15 +1,48 @@
 {
-  "name": "transfer-function-editor-example",
-  "version": "1.0.0",
-  "description": "",
-  "source": "src/index.html",
-  "scripts": {
-    "start": "parcel src/index.html --dist-dir dist --no-cache",
-    "build": "parcel build src/index.html --public-url '.' --dist-dir dist"
-  },
-  "author": "German Aerospace Center (DLR)",
+  "name": "legacy-demo-color-mapping-editor",
+  "private": true,
+  "description": "A demo app for the color mapping editor component. Fork of the https://github.com/DLR-SC/transfer-function-editor/blob/main/example/package.json",
   "license": "MIT",
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.17",
+    "color-mapping-editor": "workspace:*",
+    "daisyui": "^5.4.5",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "tailwindcss": "^4.1.17"
+  },
   "devDependencies": {
-    "parcel": "^2.8.3"
+    "@eslint/js": "^9.36.0",
+    "@types/node": "^24.6.0",
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.4",
+    "babel-plugin-react-compiler": "^19.1.0-rc.3",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-dom": "^2.3.1",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.22",
+    "eslint-plugin-react-x": "^2.3.1",
+    "globals": "^16.4.0",
+    "prettier": "^3.6.2",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.45.0",
+    "vite": "npm:rolldown-vite@7.1.14"
+  },
+  "pnpm": {
+    "overrides": {
+      "vite": "npm:rolldown-vite@7.1.14"
+    }
   }
 }
