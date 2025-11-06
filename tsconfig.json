@@ -2,13 +2,17 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
+    "moduleResolution": "ESNext",
+    "allowSyntheticDefaultImports": true,
     "jsx": "react-jsx",
     "declaration": true,
     "declarationDir": "dist",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "strict": true,
-    "baseUrl": "./src"
+    "baseUrl": "./src",
+    "paths": {
+      "object-assign-deep": ["../node_modules/object-assign-deep"]
+    }
   },
   "include": ["src"]
 }

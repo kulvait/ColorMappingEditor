@@ -30,6 +30,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "prepare": "pnpm run build",
     "preview": "vite preview",
     "format": "prettier --write .",
     "clean": "rm -rf node_modules dist",
@@ -50,7 +51,12 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",
+    "@types/d3-color": "^3.1.3",
+    "@types/d3-hsv": "^0.1.7",
+    "@types/d3-interpolate": "^3.0.4",
+    "@types/d3-scale": "^4.0.9",
     "@types/node": "^24.7.2",
+    "@types/object-assign-deep": "^0.4.3",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@vitejs/plugin-react": "^5.0.4",
