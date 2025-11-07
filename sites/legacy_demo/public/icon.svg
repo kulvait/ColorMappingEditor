@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" role="img" aria-label="Color map icon">
+  <defs>
+    <!-- Horizontal hue gradient across the ring -->
+    <linearGradient id="hue" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#ff0000"></stop>
+      <stop offset="16%" stop-color="#ff7a00"></stop>
+      <stop offset="33%" stop-color="#ffd400"></stop>
+      <stop offset="50%" stop-color="#27d26c"></stop>
+      <stop offset="66%" stop-color="#00c2d9"></stop>
+      <stop offset="83%" stop-color="#3b6bff"></stop>
+      <stop offset="100%" stop-color="#c533ff"></stop>
+    </linearGradient>
+
+    <!-- subtle dark outline for the ring -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.6" flood-color="#000" flood-opacity="0.08"></feDropShadow>
+    </filter>
+  </defs>
+
+  <!-- outer ring filled with the hue gradient -->
+  <circle cx="24" cy="24" r="20" fill="url(#hue)" stroke="#2b3034" stroke-width="1" filter="url(#shadow)"></circle>
+
+  <!-- inner cutout to make the ring -->
+  <circle cx="24" cy="24" r="10" fill="#ffffff"></circle>
+
+  <!-- small selection marker (reactive indicator) -->
+  <!-- marker outer stroke -->
+  <circle cx="34" cy="18" r="5" fill="#ffffff" stroke="#2b3034" stroke-width="0.9"></circle>
+  <!-- marker inner dot representing currently-selected hue (approx. green-teal) -->
+  <circle cx="34" cy="18" r="3" fill="#28b6a0"></circle>
+
+  <!-- tiny gloss highlight on marker for a modern touch -->
+  <path d="M33.1 16.9c0.6-0.6 1.6-0.6 2.2 0" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-linecap="round" stroke-width="0.6"></path>
+</svg>

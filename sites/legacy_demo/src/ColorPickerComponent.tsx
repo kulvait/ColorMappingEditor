@@ -25,24 +25,24 @@ const ColorPickerComponent = () => {
   }, []); // Only run once when the component mounts
 
   return (
-    <div>
-      <h2 className="text-2xl font-semibold text-center">Color Picker</h2>
-      <div className="flex flex-row items-center space-y-6 p-6">
-        {/* Color Picker component */}
-        <div ref={cpRef} className="w-[500px] h-[256px] mb-6 border border-gray-300">
-          {/* Color Picker content goes here */}
-        </div>
+<div className="relative w-full h-[550px] p-6 bg-base-100 rounded-lg flex justify-between">
+  {/* Color Picker - top left */}
+  <div ref={cpRef} className="w-[500px] h-[256px] rounded-md p-2">
+    {/* Color Picker content goes here */}
+  </div>
 
-        {/* Display color as background */}
-        <div className="w-[25px] h-[25px] mb-6 border border-red-500" style={{backgroundColor: color.hex}}></div>
+  {/* JSON display - top right */}
+  <pre className="w-[300px] h-full bg-gray-800 text-gray-300 p-4 rounded-lg border border-gray-600 overflow-auto relative">
+    {/* Color preview inside top-right corner of pre */}
+    <div
+      className="absolute top-2 right-2 w-[25px] h-[25px] border border-red-500 rounded-sm"
+      style={{ backgroundColor: color.hex }}
+    ></div>
 
-        {/* Display JSON string of color */}
-        <pre className="w-[300px] bg-gray-800 text-gray-300 p-4 rounded-lg whitespace-pre-wrap border border-gray-600 text-left">
-          {colorJson}
-        </pre>
-      </div>
-    </div>
-  );
+    {colorJson}
+  </pre>
+</div>  
+);
 };
 
 export default ColorPickerComponent;
