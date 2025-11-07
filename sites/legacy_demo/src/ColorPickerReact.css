@@ -5,3 +5,106 @@
 .color-picker-react-hue-vertical {
   background: linear-gradient(to top, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
 }
+
+.color-picker-react-root {
+  position: relative;
+  border: 1px solid #ef4444; /* red-500 */
+  background-color: var(--tw-bg-base-100, #fff);
+  box-sizing: border-box;
+} 
+
+/* === SL PICKER (Saturation–Value square) === */
+.color-picker-react-sl-picker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 1px solid #9ca3af; /* gray-400 */
+  border-radius: 0.125rem; /* rounded-sm */
+  overflow: hidden;
+} 
+
+/* The gradient area inside SV picker */
+.color-picker-react-sl-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-blend-mode: multiply;
+  cursor: crosshair;
+  border-radius: inherit;
+} 
+
+/* === H PICKER (Hue bar) === */
+.color-picker-react-h-picker {
+  position: absolute;
+  top: 0;
+  border: none;
+  cursor: pointer;
+} 
+
+/* === PREVIEW AND INPUT FORM === */
+.color-picker-react-preview {
+  width: 100%;
+  height: 24px;
+  border: 1px solid #6b7280; /* gray-500 */
+  border-radius: 0.5rem;
+} 
+
+.color-picker-react-input-group {
+  display: flex;
+  flex-direction: column;
+  padding: 2px 0;
+}
+
+/* Shared style for all input rows (H, S, V, R, G, B) */
+.color-picker-react-input-div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem; /* text-xs */
+  height: 24px;
+  margin-bottom: 4px;
+} 
+
+.color-picker-react-input-div input {
+  height: 24px;
+  border: 1px solid #9ca3af;
+  border-radius: 0.125rem;
+  text-align: right;
+  font-size: 0.75rem;
+  box-sizing: border-box;
+}
+
+/* Optional subtle hover effect for inputs */
+.color-picker-react-input-div input:hover {
+  border-color: #34373e; /* gray-500 */
+} 
+
+/* === HEX INPUT === */
+.color-picker-react-hex-input {
+  width: 100%;
+  border: 1px solid #9ca3af;
+  border-radius: 0.125rem;
+  padding: 0 0.25rem;
+  font-size: 0.75rem;
+  text-align: center;
+} 
+
+.color-picker-react-hex-input:hover {
+  border-color: #34373e;
+}
+
+/* === Layout helpers for flex column container === */
+.color-picker-react-input-panel {
+  position: relative;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 2px;
+  gap: 0.25rem;
+  box-sizing: border-box;
+}
+
+
+

@@ -612,7 +612,7 @@ export class ColorPicker extends Container {
     this.inputFields.hex.addEventListener('focusout', (ev: InputEvent) => {
       const element = ev.currentTarget as HTMLInputElement;
       const value = element.value;
-      if (!(/#([0-7a-fA-F]{3}$|[0-7a-fA-F]{6}$)/.exec(value))) {
+      if (!/#([0-7a-fA-F]{3}$|[0-7a-fA-F]{6}$)/.exec(value)) {
         element.value = this.getHEX();
         element.classList.remove('tfe-color-picker-input-hex-invalid');
       }

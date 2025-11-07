@@ -1,5 +1,4 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {ColorPicker} from 'color-mapping-editor';
 import tinycolor from 'tinycolor2';
 
 import './ColorPickerReact.css';
@@ -36,7 +35,13 @@ const ColorPickerReact = ({height = 256, initHexColor = '#ff0000'}) => {
   const initColor = tinycolor(initHexColor).isValid() ? hexToColor(initHexColor) : hexToColor('#ff0000');
   const [color, setColor] = useState<Color>(initColor);
 
-  const [width, setWidth] = useState(1.5 * height); // Width is 1.5 times height
+  //Put it in Rem  = 16px
+  const hueGap = 3;
+  const hueWidth = 16;
+  const inputGap = 3;
+  const inputWidth = 75;
+  const width = height + hueGap + hueWidth + inputGap + inputWidth;
+
   const cpRef = useRef(null);
 
   // Handlers for HSV changes
@@ -84,25 +89,18 @@ const ColorPickerReact = ({height = 256, initHexColor = '#ff0000'}) => {
   };
 
   return (
-    <div
-      className="color-picker-react-root relative border border-red-500 bg-base-100"
-      style={{width: `${width}px`, height: `${height}px`}}
-    >
+    <div className="color-picker-react-root" style={{width: `${width}px`, height: `${height}px`}}>
       {/* SL Picker */}
-      <div
-        className="color-picker-react-sl-picker absolute top-0 left-0 border border-gray-400 rounded-sm"
-        style={{width: `${0.66 * width}px`, height: `${height}px`}}
-      >
+      <div className="color-picker-react-sl-picker" style={{width: `${height}px`, height: `${height}px`}}>
         <div
-          className="color-picker-react-sl-placeholder w-full h-full flex items-center justify-center"
+          className="color-picker-react-sl-placeholder"
           style={{
             backgroundImage: `
-	linear-gradient(to right, rgba(255,255,255,1), hsl(${color.hsv.h}, 100%, 50%)),
-	linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,0))
-      `,
-            backgroundBlendMode: 'multiply',
+          linear-gradient(to right, rgba(255,255,255,1), hsl(${color.hsv.h}, 100%, 50%)),
+          linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,0))
+        `,
           }}
-         title="Adjusts the saturation (horizontal) and brightness/value (vertical) for the current hue."
+          title="Adjusts the saturation (horizontal) and brightness/value (vertical) for the current hue."
         >
           SL Picker
         </div>
@@ -110,112 +108,104 @@ const ColorPickerReact = ({height = 256, initHexColor = '#ff0000'}) => {
 
       {/* H Picker */}
       <div
-        className="color-picker-react-h-picker absolute top-0 right-0 border border-gray-400 color-picker-react-hue-vertical"
-        style={{width: '20px', height: `${height}px`, left: `${0.66 * width + 4}px`}}
-        title="Hue selector: sets the base color tone 0–360 around the color wheel)"
+        className="color-picker-react-h-picker color-picker-react-hue-vertical"
+        style={{width: `${hueWidth}px`, height: `${height}px`, left: `${height + hueGap}px`}}
+        title="Hue selector: sets the base color tone (0–360° around the color wheel)"
       ></div>
 
-      {/* Input / Preview Form */}
       <div
-        className="absolute top-0 flex flex-col gap-2"
+        className="color-picker-react-input-panel"
         style={{
-          left: `${0.66 * width + 28}px`,
-          width: `${width - (0.66 * width + 28)}px`,
+          left: `${height + hueGap + hueWidth + inputGap}px`,
+          width: `${inputWidth}px`,
           height: `${height}px`,
-          padding: '2px',
         }}
       >
-        {/* Placeholder inputs */}
-        <div className="flex flex-col gap-2">
-          {/* Color Preview */}
-          <div
-            className="color-picker-react-preview w-15 h-6 border border-gray-500 rounded-sm"
-            style={{backgroundColor: color.hex}}
-          ></div>
-          {/* H Input */}{' '}
-          <div className="color-picker-react-h-input-div w-15 h-6 flex items-center justify-between text-xs" title="Hue selector: sets the base color tone (0–360° around the color wheel)">
-            {' '}
-            <span>H</span>{' '}
+        {/* Color preview */}
+        <div className="color-picker-react-preview" style={{backgroundColor: color.hex}} />
+
+        {/* Inputs */}
+
+        {/* === HSV Inputs === */}
+        <div className="color-picker-react-input-group">
+          {/* H Input */}
+          <div className="color-picker-react-input-div" title="Hue selector: 0–360°">
+            <span>H</span>
             <input
               type="number"
-              className="color-picker-react-h-input border border-gray-400 w-12 h-6 rounded-sm text-right"
               min={0}
               max={360}
               value={Math.round(color.hsv.h)}
               onChange={(e) => handleHChange(Number(e.target.value))}
-            />{' '}
+            />
           </div>
+
           {/* S Input */}
-          <div className="color-picker-react-s-input-div w-15 h-6 flex items-center justify-between text-xs" title="Saturation selector: adjusts the intensity of the color (0–100%)">
+          <div className="color-picker-react-input-div" title="Saturation selector: 0–100%">
             <span>S</span>
             <input
               type="number"
-              className="color-picker-react-s-input border border-gray-400 w-12 h-6 rounded-sm text-xs text-right"
               min={0}
               max={100}
               value={Math.round(color.hsv.s * 100)}
               onChange={(e) => handleSChange(Number(e.target.value))}
             />
           </div>
+
           {/* V Input */}
-          <div className="color-picker-react-v-input-div w-15 h-6 flex items-center justify-between text-xs" title="Value selector: controls the brightness of the color (0–100%)">
+          <div className="color-picker-react-input-div" title="Brightness/Value selector: 0–100%">
             <span>V</span>
             <input
               type="number"
-              className="color-picker-react-v-input border border-gray-400 w-12 h-6 rounded-sm text-xs text-right"
               min={0}
               max={100}
               value={Math.round(color.hsv.v * 100)}
               onChange={(e) => handleVChange(Number(e.target.value))}
             />
           </div>
+        </div>
+
+        {/* === RGB Inputs === */}
+        <div className="color-picker-react-input-group">
           {/* R Input */}
-          <div className="color-picker-react-r-input-div w-15 h-6 flex items-center justify-between text-xs" title="Red component: sets the intensity of red in the color (0–255)">
+          <div className="color-picker-react-input-div" title="Red component: 0–255">
             <span>R</span>
             <input
               type="number"
-              className="color-picker-react-r-input border border-gray-400 w-12 h-6 rounded-sm text-xs text-right"
               min={0}
               max={255}
               value={color.rgb.r}
               onChange={(e) => handleRChange(Number(e.target.value))}
             />
           </div>
+
           {/* G Input */}
-          <div className="color-picker-react-g-input-div w-15 h-6 flex items-center justify-between text-xs" title="Green component: sets the intensity of green in the color (0–255)">
+          <div className="color-picker-react-input-div" title="Green component: 0–255">
             <span>G</span>
             <input
               type="number"
-              className="color-picker-react-g-input border border-gray-400 w-12 h-6 rounded-sm text-xs text-right"
               min={0}
               max={255}
               value={color.rgb.g}
               onChange={(e) => handleGChange(Number(e.target.value))}
             />
           </div>
+
           {/* B Input */}
-          <div className="color-picker-react-b-input-div w-15 h-6 flex items-center justify-between text-xs" title="Blue component: sets the intensity of blue in the color (0–255)">
+          <div className="color-picker-react-input-div" title="Blue component: 0–255">
             <span>B</span>
             <input
               type="number"
-              className="color-picker-react-b-input border border-gray-400 w-12 h-6 rounded-sm text-xs text-right"
               min={0}
               max={255}
               value={color.rgb.b}
               onChange={(e) => handleBChange(Number(e.target.value))}
             />
           </div>
-          {/* Hex Input */}
-          <label className="flex items-center text-xs mt-2">
-            <input
-              className="color-picker-react-hex-input border border-gray-400 rounded-sm ml-1 px-1 w-16 text-xs"
-              type="text"
-              maxLength={7}
-              value={color.hex}
-              readOnly
-            />
-          </label>
         </div>
+
+        {/* HEX input */}
+        <input className="color-picker-react-hex-input" type="text" maxLength={7} value={color.hex} readOnly />
       </div>
     </div>
   );
