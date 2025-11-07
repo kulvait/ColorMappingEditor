@@ -9,22 +9,33 @@
 .color-picker-react-root {
   position: relative;
   border: 1px solid #ef4444; /* red-500 */
-  background-color: var(--tw-bg-base-100, #fff);
+  background-color: #fff;
   box-sizing: border-box;
 } 
 
 /* === SL PICKER (Saturation–Value square) === */
 .color-picker-react-sl-picker {
   position: absolute;
-  top: 0;
-  left: 0;
-  border: 1px solid #9ca3af; /* gray-400 */
-  border-radius: 0.125rem; /* rounded-sm */
-  overflow: hidden;
+  width: 15px;
+  height: 15px;
+  border: 2px solid #fff; /* white hollow border */
+  border-radius: 50%;
+  background-color: transparent;
+  transform: translate(-50%, -50%); /* center on S/V coordinate */
+  pointer-events: none; /* allow clicks to pass through */
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.6); /* optional for better visibility */
+
+  left: 50%;
+  top: 50%;
 } 
 
 /* The gradient area inside SV picker */
 .color-picker-react-sl-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 1px solid #9ca3af; /* gray-400 */
+  overflow: hidden;
   width: 100%;
   height: 100%;
   display: flex;
@@ -32,7 +43,6 @@
   justify-content: center;
   background-blend-mode: multiply;
   cursor: crosshair;
-  border-radius: inherit;
 } 
 
 /* === H PICKER (Hue bar) === */
@@ -41,6 +51,7 @@
   top: 0;
   border: none;
   cursor: pointer;
+
 } 
 
 /* === PREVIEW AND INPUT FORM === */
@@ -105,6 +116,5 @@
   gap: 0.25rem;
   box-sizing: border-box;
 }
-
 
 

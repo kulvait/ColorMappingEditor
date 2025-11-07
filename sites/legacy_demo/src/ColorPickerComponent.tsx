@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {ColorPicker} from 'color-mapping-editor';
+import {ColorPickerLegacy} from 'color-mapping-editor';
 
 const ColorPickerComponent = () => {
   const [color, setColor] = useState('cyan'); // Default color as a string
@@ -8,7 +8,7 @@ const ColorPickerComponent = () => {
 
   useEffect(() => {
     // Initialize the ColorPicker component
-    const cp = new ColorPicker(cpRef.current, {initialColor: color});
+    const cp = new ColorPickerLegacy(cpRef.current, {initialColor: color});
 
     // Add a listener to update state when the color changes
     cp.addListener((c) => {

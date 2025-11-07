@@ -1,9 +1,12 @@
 import {defineConfig} from 'vite';
+//import postcss from 'rollup-plugin-postcss';
+import { libInjectCss } from 'vite-plugin-lib-inject-css'
 import react from '@vitejs/plugin-react';
 import dts from 'vite-plugin-dts';
 
 export default defineConfig({
-  plugins: [react(), dts()],
+  plugins: [react(), dts(),  libInjectCss(),
+    ],
   build: {
     lib: {
       entry: 'src/index.ts', // your main entry
