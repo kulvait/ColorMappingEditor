@@ -19,7 +19,7 @@ export interface ColorStop {
 /** A complete color map. */
 export interface ColorMap {
   /** The colors at the specified stops. */
-  colorStops: Array<ColorStop>;
+  colorStops: ColorStop[];
 
   /** The method on how the color between stops is being computed. */
   interpolationMethod: InterpolationMethod;
@@ -34,7 +34,7 @@ export interface ColorMap {
 /** Combines transparency and color to create a transfer function. */
 export interface TransferFunction {
   /** Defines the function of transparency. */
-  alphaStops: Array<AlphaStop>;
+  alphaStops: AlphaStop[];
 
   /** Defines the function of color. */
   colorMap: ColorMap;

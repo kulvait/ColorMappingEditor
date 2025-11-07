@@ -27,7 +27,7 @@ export default class NumberInputField extends Container {
   private readonly integerOnly: boolean;
 
   /** This gets called, when the value changes to notify users of this library. */
-  private callbacks: Map<number, (value: number) => void> = new Map();
+  private callbacks = new Map<number, (value: number) => void>();
   private callbackCounter = 0;
 
   /**
@@ -114,7 +114,7 @@ export default class NumberInputField extends Container {
    * Sets a new value. The value might be modified to fulfill the min, max and integerOnly constraints. By default, the
    * observers will be notified as well. This can be suppressed with the second argument set to false.
    */
-  public setValue(value: number, notifyObservers: boolean = true) {
+  public setValue(value: number, notifyObservers = true) {
     if (value === this.value) {
       return;
     }

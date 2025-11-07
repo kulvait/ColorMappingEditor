@@ -50,7 +50,7 @@ export class TransferFunctionEditor {
   private colorMapEditor: ColorMapEditor;
 
   /** This gets called, when the transfer function changes to notify users of this library. */
-  private callbacks: Map<number, (transferFunctionEditor: TransferFunctionEditor) => void> = new Map();
+  private callbacks = new Map<number, (transferFunctionEditor: TransferFunctionEditor) => void>();
   private callbackCounter = 0;
 
   /**
@@ -125,12 +125,12 @@ export class TransferFunctionEditor {
   }
 
   /** Get the alpha stops. */
-  public getAlphaStops(): Array<AlphaStop> {
+  public getAlphaStops(): AlphaStop[] {
     return this.transparencyEditor.getAlphaStops();
   }
 
   /** Replace the existing alpha stops with new ones. */
-  public setAlphaStops(alphaStops: Array<AlphaStop>) {
+  public setAlphaStops(alphaStops: AlphaStop[]) {
     this.transparencyEditor.setAlphaStops(alphaStops);
   }
 
@@ -143,12 +143,12 @@ export class TransferFunctionEditor {
    * This function returns an array of bins with their color, if the color map is discrete. Otherwise, it will return an
    * empty array.
    */
-  public getDiscreteColorMap(): Array<ColorMapBin> {
+  public getDiscreteColorMap(): ColorMapBin[] {
     return this.colorMapEditor.getDiscreteColorMap();
   }
 
   /** Set a new color map. */
-  public setColorMap(colorMap: Array<ColorStop>) {
+  public setColorMap(colorMap: ColorStop[]) {
     this.colorMapEditor.setColorStops(colorMap);
   }
 
@@ -171,7 +171,7 @@ export interface TransferFunctionEditorOptions {
    *   { stop: 1, alpha: 1 }
    * ]
    */
-  initialAlphaStops?: Array<AlphaStop>;
+  initialAlphaStops?: AlphaStop[];
 
   /**
    * The initial color map.

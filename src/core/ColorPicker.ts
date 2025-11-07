@@ -57,10 +57,10 @@ export class ColorPicker extends Container {
   private readonly CANVAS_SIZE: number = 256;
 
   /** The size of the control points. Might become configurable in the future. */
-  private controlPointSize: number = 7;
+  private controlPointSize = 7;
 
   /** This gets called, when the color changes to notify users of this library. */
-  private callbacks: Map<number, ColorCallback> = new Map();
+  private callbacks = new Map<number, ColorCallback>();
   private callbackCounter = 0;
 
   /** All the inputs for manual editing the hsv, rgb and hex values. */
@@ -596,7 +596,7 @@ export class ColorPicker extends Container {
     this.inputFields.hex.addEventListener('input', (ev: InputEvent) => {
       const element = ev.currentTarget as HTMLInputElement;
       const value = element.value;
-      if (value.match(/#([0-7a-fA-F]{3}$|[0-7a-fA-F]{6}$)/)) {
+      if (/#([0-7a-fA-F]{3}$|[0-7a-fA-F]{6}$)/.exec(value)) {
         this.hsv = d3HSV(value);
         this.validateHueAndSaturation();
         this.sendUpdate();
@@ -612,7 +612,7 @@ export class ColorPicker extends Container {
     this.inputFields.hex.addEventListener('focusout', (ev: InputEvent) => {
       const element = ev.currentTarget as HTMLInputElement;
       const value = element.value;
-      if (!value.match(/#([0-7a-fA-F]{3}$|[0-7a-fA-F]{6}$)/)) {
+      if (!(/#([0-7a-fA-F]{3}$|[0-7a-fA-F]{6}$)/.exec(value))) {
         element.value = this.getHEX();
         element.classList.remove('tfe-color-picker-input-hex-invalid');
       }

@@ -40,7 +40,7 @@ export class ColorMapEditor extends Container {
   private ctx: CanvasRenderingContext2D;
 
   /** This is the color map that everything revolves around. The stops are always sorted. */
-  private colorStops: Array<ColorStop>;
+  private colorStops: ColorStop[];
 
   /** The used method of interpolation between two color stops. */
   private interpolationMethod: InterpolationMethod;
@@ -73,7 +73,7 @@ export class ColorMapEditor extends Container {
   private colorPicker: ColorPicker;
 
   /** This gets called when the color changes to notify users of this library. */
-  private callbacks: Map<number, (colorMapEditor: ColorMapEditor) => void> = new Map();
+  private callbacks = new Map<number, (colorMapEditor: ColorMapEditor) => void>();
   private callbackCounter = 0;
 
   /**
@@ -154,7 +154,7 @@ export class ColorMapEditor extends Container {
   }
 
   /** Set new color stops. */
-  public setColorStops(colorStops: Array<ColorStop>) {
+  public setColorStops(colorStops: ColorStop[]) {
     this.colorStops = colorStops;
     this.sortControlPoints();
     this.draw();
@@ -162,7 +162,7 @@ export class ColorMapEditor extends Container {
   }
 
   /** Get the current color stops. */
-  public getColorStops(): Array<ColorStop> {
+  public getColorStops(): ColorStop[] {
     return this.colorStops;
   }
 
@@ -256,7 +256,7 @@ export class ColorMapEditor extends Container {
    * This function returns an array of bins with their color, if the color map is discrete. Otherwise, it will return an
    * empty array.
    */
-  public getDiscreteColorMap(): Array<ColorMapBin> {
+  public getDiscreteColorMap(): ColorMapBin[] {
     return getColorMapBins(this.getColorMap());
   }
 
@@ -336,13 +336,13 @@ export class ColorMapEditor extends Container {
   /** Adds event listeners for adding, removing and moving control points as well as showing the color picker. */
   private addCanvasEventListeners() {
     // This flag prevents click events to trigger when dragging control points small distances.
-    let draggedBefore: boolean = false;
+    let draggedBefore = false;
 
     // Tracks if the user is currently dragging a control point.
-    let isDragging: boolean = false;
+    let isDragging = false;
 
     // The index of the currently dragged control point.
-    let dragIndex: number = -1;
+    let dragIndex = -1;
 
     // The AbortController is for removing the mousemove listener from the document, when the user stops dragging.
     let abortController: AbortController = null;
@@ -568,7 +568,7 @@ export class ColorMapEditor extends Container {
       this.interpolationMethodElement.classList.add('tfe-color-map-editor-interpolation-method-select');
 
       // Generate options for all interpolation methods.
-      for (let method of Object.keys(InterpolationMethod)) {
+      for (const method of Object.keys(InterpolationMethod)) {
         const option = document.createElement('option');
         option.classList.add('tfe-color-map-editor-interpolation-method-option');
         option.value = method;
@@ -696,7 +696,7 @@ export interface ColorMapEditorOptions {
          *   { stop: 1, color: "red" }
          * ]
          */
-        colorStops?: Array<ColorStop>;
+        colorStops?: ColorStop[];
 
         /**
          * The method of interpolation.

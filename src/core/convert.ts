@@ -39,7 +39,7 @@ export function getColorFromColorMapAt(colorMap: ColorMap, value: number): strin
  * This function returns an array of bins with their color, if the color map is discrete. Otherwise, it will return an
  * empty array.
  */
-export function getColorMapBins(colorMap: ColorMap): Array<ColorMapBin> {
+export function getColorMapBins(colorMap: ColorMap): ColorMapBin[] {
   if (!colorMap.discrete || !colorMap.bins) {
     return [];
   }
@@ -50,7 +50,7 @@ export function getColorMapBins(colorMap: ColorMap): Array<ColorMapBin> {
   const binSize = range / colorMap.bins;
 
   const colorRange = getColorRange(colorMap);
-  const result: Array<ColorMapBin> = [];
+  const result: ColorMapBin[] = [];
 
   for (let i = 0; i < colorMap.bins; i++) {
     const lowerBound = min + i * binSize;

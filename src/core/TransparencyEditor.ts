@@ -36,7 +36,7 @@ export class TransparencyEditor extends Container {
   private ctx: CanvasRenderingContext2D;
 
   /** This is the transparency map, that everything revolves around. The stops are always sorted. */
-  private alphaStops: Array<AlphaStop>;
+  private alphaStops: AlphaStop[];
 
   /**
    * This color map is used for drawing a gradient in the background. It can be set via function calls, but not via user
@@ -58,7 +58,7 @@ export class TransparencyEditor extends Container {
   private alphaGridSize: number;
 
   /** This gets called, when the transparency changes to notify users of this library. */
-  private callbacks: Map<number, (transparencyEditor: TransparencyEditor) => void> = new Map();
+  private callbacks = new Map<number, (transparencyEditor: TransparencyEditor) => void>();
   private callbackCounter = 0;
 
   /**
@@ -185,12 +185,12 @@ export class TransparencyEditor extends Container {
   }
 
   /** Get the alpha stops. */
-  public getAlphaStops(): Array<AlphaStop> {
+  public getAlphaStops(): AlphaStop[] {
     return this.alphaStops;
   }
 
   /** Replace the existing alpha stops with new ones. */
-  public setAlphaStops(alphaStops: Array<AlphaStop>) {
+  public setAlphaStops(alphaStops: AlphaStop[]) {
     this.alphaStops = alphaStops;
     this.sortControlPoints();
     this.updateAlphaRange();
@@ -294,10 +294,10 @@ export class TransparencyEditor extends Container {
   /** Adds event listeners for creating, moving and deleting control points. */
   private addEventListeners() {
     // Tracks if the user is currently dragging a control point.
-    let isDragging: boolean = false;
+    let isDragging = false;
 
     // The index of the currently dragged control point.
-    let dragIndex: number = -1;
+    let dragIndex = -1;
 
     // The AbortController is for removing the mousemove listener from the document, when the user stops dragging.
     let abortController: AbortController = null;
@@ -417,7 +417,7 @@ export interface TransparencyEditorOptions {
    *   { stop: 1, alpha: 1 }
    * ]
    */
-  initialAlphaStops?: Array<AlphaStop>;
+  initialAlphaStops?: AlphaStop[];
 
   /**
    * The initial color map.
