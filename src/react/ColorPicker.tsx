@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import tinycolor from 'tinycolor2';
 
-import './ColorPicker.module.css';
+import './ColorPicker.css';
 
 interface RGB {
   r: number;

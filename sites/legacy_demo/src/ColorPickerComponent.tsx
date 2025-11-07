@@ -1,14 +1,40 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {ColorPickerLegacy} from 'color-mapping-editor';
 
-const ColorPickerComponent = () => {
-  const [color, setColor] = useState('cyan'); // Default color as a string
+// Assuming these types are defined or imported from a library
+interface RGB {
+  r: number;
+  g: number;
+  b: number;
+}
+
+interface HSL {
+  h: number;
+  s: number;
+  l: number;
+}
+
+interface HSV {
+  h: number;
+  s: number;
+  v: number;
+}
+
+interface Color {
+  rgb: RGB;
+  hsl: HSL;
+  hsv: HSV;
+  hex: string;
+}
+
+const ColorPickerComponent = ({initialColorHex = "#FF0000"}) => {
+  const [color, setColor] = useState<Color | null>({rgb: {r: 0, g: 0, b: 0}, hsv: {h: 0, s: 0, v: 0}, hex: initialColorHex}); 
   const [colorJson, setColorJson] = useState('{}'); // Color JSON as a string
   const cpRef = useRef(null);
 
   useEffect(() => {
     // Initialize the ColorPicker component
-    const cp = new ColorPickerLegacy(cpRef.current, {initialColor: color});
+    const cp = new ColorPickerLegacy(cpRef.current, {initialColor: initialColorHex});
 
     // Add a listener to update state when the color changes
     cp.addListener((c) => {
@@ -22,7 +48,7 @@ const ColorPickerComponent = () => {
       // Cleanup the ColorPicker when the component unmounts
       cp.removeListener();
     };
-  }, []); // Only run once when the component mounts
+  }, [initialColorHex]); // Only run once when the component mounts
 
   return (
     <div className="relative w-full h-[550px] p-6 bg-base-100 rounded-lg flex justify-between">

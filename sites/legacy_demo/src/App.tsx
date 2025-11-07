@@ -1,5 +1,3 @@
-import {useState} from 'react';
-import TestColorMapping from './TestColorMapping'; // Path to your test component
 import ColorPickerComponent from './ColorPickerComponent';
 import ColorPickerReact from './ColorPickerReact';
 

@@ -1,6 +1,5 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useRef, useState} from 'react';
 import {ColorPicker} from 'color-mapping-editor';
-import '../node_modules/color-mapping-editor/dist/color-mapping-editor.umd.css'
 
 const ColorPickerReact = () => {
   const [color, setColor] = useState('cyan'); // Default color as a string
