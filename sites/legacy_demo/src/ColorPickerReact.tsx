@@ -102,6 +102,7 @@ const ColorPickerReact = ({height = 256, initHexColor = '#ff0000'}) => {
       `,
             backgroundBlendMode: 'multiply',
           }}
+         title="Adjusts the saturation (horizontal) and brightness/value (vertical) for the current hue."
         >
           SL Picker
         </div>
@@ -111,6 +112,7 @@ const ColorPickerReact = ({height = 256, initHexColor = '#ff0000'}) => {
       <div
         className="color-picker-react-h-picker absolute top-0 right-0 border border-gray-400 color-picker-react-hue-vertical"
         style={{width: '20px', height: `${height}px`, left: `${0.66 * width + 4}px`}}
+        title="Hue selector: sets the base color tone 0–360 around the color wheel)"
       ></div>
 
       {/* Input / Preview Form */}
@@ -131,7 +133,7 @@ const ColorPickerReact = ({height = 256, initHexColor = '#ff0000'}) => {
             style={{backgroundColor: color.hex}}
           ></div>
           {/* H Input */}{' '}
-          <div className="color-picker-react-h-input-div w-15 h-6 flex items-center justify-between text-xs">
+          <div className="color-picker-react-h-input-div w-15 h-6 flex items-center justify-between text-xs" title="Hue selector: sets the base color tone (0–360° around the color wheel)">
             {' '}
             <span>H</span>{' '}
             <input
@@ -144,7 +146,7 @@ const ColorPickerReact = ({height = 256, initHexColor = '#ff0000'}) => {
             />{' '}
           </div>
           {/* S Input */}
-          <div className="color-picker-react-s-input-div w-15 h-6 flex items-center justify-between text-xs">
+          <div className="color-picker-react-s-input-div w-15 h-6 flex items-center justify-between text-xs" title="Saturation selector: adjusts the intensity of the color (0–100%)">
             <span>S</span>
             <input
               type="number"
@@ -156,7 +158,7 @@ const ColorPickerReact = ({height = 256, initHexColor = '#ff0000'}) => {
             />
           </div>
           {/* V Input */}
-          <div className="color-picker-react-v-input-div w-15 h-6 flex items-center justify-between text-xs">
+          <div className="color-picker-react-v-input-div w-15 h-6 flex items-center justify-between text-xs" title="Value selector: controls the brightness of the color (0–100%)">
             <span>V</span>
             <input
               type="number"
@@ -168,7 +170,7 @@ const ColorPickerReact = ({height = 256, initHexColor = '#ff0000'}) => {
             />
           </div>
           {/* R Input */}
-          <div className="color-picker-react-r-input-div w-15 h-6 flex items-center justify-between text-xs">
+          <div className="color-picker-react-r-input-div w-15 h-6 flex items-center justify-between text-xs" title="Red component: sets the intensity of red in the color (0–255)">
             <span>R</span>
             <input
               type="number"
@@ -180,7 +182,7 @@ const ColorPickerReact = ({height = 256, initHexColor = '#ff0000'}) => {
             />
           </div>
           {/* G Input */}
-          <div className="color-picker-react-g-input-div w-15 h-6 flex items-center justify-between text-xs">
+          <div className="color-picker-react-g-input-div w-15 h-6 flex items-center justify-between text-xs" title="Green component: sets the intensity of green in the color (0–255)">
             <span>G</span>
             <input
               type="number"
@@ -192,7 +194,7 @@ const ColorPickerReact = ({height = 256, initHexColor = '#ff0000'}) => {
             />
           </div>
           {/* B Input */}
-          <div className="color-picker-react-b-input-div w-15 h-6 flex items-center justify-between text-xs">
+          <div className="color-picker-react-b-input-div w-15 h-6 flex items-center justify-between text-xs" title="Blue component: sets the intensity of blue in the color (0–255)">
             <span>B</span>
             <input
               type="number"
