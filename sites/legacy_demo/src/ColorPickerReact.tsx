@@ -5,10 +5,16 @@ const ColorPickerReact = () => {
   const [color, setColor] = useState('cyan'); // Default color as a string
   const [colorJson, setColorJson] = useState('{}'); // Color JSON as a string
   const cpRef = useRef(null);
+    
+  const onChangeHandler = (newColor) => {
+    setColor(newColor); // Update the color state for display
+    setColorJson(JSON.stringify(newColor, null, 2)); // Update color as JSON string
+    console.log('Selected Color:', newColor);
+  };
 
   return (
     <div className="relative w-full h-[550px] p-6 bg-base-100 rounded-lg flex justify-between">
-      <ColorPicker ref={cpRef} />
+      <ColorPicker ref={cpRef} initHexColor="#FF0000"  onChange={onChangeHandler}/>
 
       {/* JSON display - top right */}
       <pre className="w-[300px] h-full bg-gray-800 text-gray-300 p-4 rounded-lg border border-gray-600 overflow-auto relative">

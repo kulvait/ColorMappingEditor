@@ -17,21 +17,38 @@ interface Color {
   rgb: RGB;
   hsv: HSV;
   hex: string;
+  isDark: boolean;
 }
 
+const clamp = (value: number, min: number, max: number): number => {
+  return Math.max(min, Math.min(max, value));
+};
+
 const hexToColor = (hex: string): Color => {
-  const color = tinycolor(hex);
-  if (!color.isValid()) {
+  const tcolor = tinycolor(hex);
+  if (!tcolor.isValid()) {
     console.error('Invalid hex color:', hex);
-    return {rgb: {r: 0, g: 0, b: 0}, hsv: {h: 0, s: 0, v: 0}, hex: '#000000'};
+  }
+  return tinyColorToColor(tcolor);
+};
+
+const tinyColorToColor = (tcolor): Color => {
+  if (!tcolor.isValid()) {
+    return {rgb: {r: 0, g: 0, b: 0}, hsv: {h: 0, s: 0, v: 0}, isDark: false, hex: '#000000'};
   } else {
-    const rgb = color.toRgb();
-    const hsv = color.toHsv();
-    return {rgb: {r: rgb.r, g: rgb.g, b: rgb.b}, hsv: {h: hsv.h, s: hsv.s, v: hsv.v}, hex: color.toHexString()};
+    const rgb = tcolor.toRgb();
+    const hsv = tcolor.toHsv();
+    const dark = tcolor.isDark();
+    return {
+      rgb: {r: rgb.r, g: rgb.g, b: rgb.b},
+      hsv: {h: hsv.h, s: hsv.s, v: hsv.v},
+      hex: tcolor.toHexString(),
+      isDark: dark,
+    };
   }
 };
 
-const ColorPicker = ({height = 256, initHexColor = '#ff0000'}) => {
+const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null}) => {
   const initColor = tinycolor(initHexColor).isValid() ? hexToColor(initHexColor) : hexToColor('#ff0000');
   const [color, setColor] = useState<Color>(initColor);
   const hAreaDivRef = useRef(null);
@@ -46,48 +63,78 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000'}) => {
 
   const cpRef = useRef(null);
 
+  // useEffect to trigger onChange whenever color changes
+  useEffect(() => {
+    if (onChange && typeof onChange === 'function') {
+      onChange(color);
+    }
+  }, [color, onChange]); // Dependency array includes color and onChange
+
   // Handlers for HSV changes
   const handleHChange = (value: number) => {
-    const newHSV = {...color.hsv, h: value};
-    const newHex = tinycolor(newHSV).toHexString();
-    const newRGB = tinycolor(newHSV).toRgb();
-    setColor({hsv: newHSV, rgb: newRGB, hex: newHex});
+    const clampedHue = clamp(value, 0, 360);
+    const newHSV = {...color.hsv, h: clampedHue};
+    const tcolor = tinycolor(newHSV);
+    const newcolor = tinyColorToColor(tcolor);
+    //Fix 360 identical 0
+	newcolor.hsv.h = clampedHue;
+    setColor(newcolor);
   };
 
   const handleSChange = (value: number) => {
-    const newHSV = {...color.hsv, s: value / 100};
-    const newHex = tinycolor(newHSV).toHexString();
-    const newRGB = tinycolor(newHSV).toRgb();
-    setColor({hsv: newHSV, rgb: newRGB, hex: newHex});
+    const clampedSaturation = clamp(value, 0, 100); // Clamp saturation between 0 and 100
+    const newHSV = {...color.hsv, s: clampedSaturation / 100};
+    const tcolor = tinycolor(newHSV);
+    const newcolor = tinyColorToColor(tcolor);
+	//Fix 360 identical 0
+	newcolor.hsv.h = color.hsv.h;
+    setColor(newcolor);
   };
 
   const handleVChange = (value: number) => {
-    const newHSV = {...color.hsv, v: value / 100};
-    const newHex = tinycolor(newHSV).toHexString();
-    const newRGB = tinycolor(newHSV).toRgb();
-    setColor({hsv: newHSV, rgb: newRGB, hex: newHex});
+    const clampedValue = clamp(value, 0, 100); // Clamp value (brightness) between 0 and 100
+    const newHSV = {...color.hsv, v: clampedValue / 100};
+    const tcolor = tinycolor(newHSV);
+    const newcolor = tinyColorToColor(tcolor);
+	//Fix 360 identical 0
+	newcolor.hsv.h = color.hsv.h;
+    setColor(newcolor);
+  };
+
+  const handleSVChange = (sValue: number, vValue: number) => {
+    const clampedSaturation = clamp(sValue, 0, 100);
+    const clampedValue = clamp(vValue, 0, 100);
+    const newHSV = {...color.hsv, s: clampedSaturation / 100, v: clampedValue / 100};
+    const tcolor = tinycolor(newHSV);
+    const newcolor = tinyColorToColor(tcolor);
+	//Fix 360 identical 0
+	newcolor.hsv.h = color.hsv.h;
+    setColor(newcolor);
   };
 
   // Handlers for RGB changes
   const handleRChange = (value: number) => {
-    const newRGB = {...color.rgb, r: value};
-    const newHex = tinycolor(newRGB).toHexString();
-    const newHSV = tinycolor(newRGB).toHsv();
-    setColor({hsv: newHSV, rgb: newRGB, hex: newHex});
+    const clampedR = clamp(value, 0, 255); // Clamp R channel between 0 and 255
+    const newRGB = {...color.rgb, r: clampedR};
+    const tcolor = tinycolor(newRGB);
+    const newcolor = tinyColorToColor(tcolor);
+    setColor(newcolor);
   };
 
   const handleGChange = (value: number) => {
-    const newRGB = {...color.rgb, g: value};
-    const newHex = tinycolor(newRGB).toHexString();
-    const newHSV = tinycolor(newRGB).toHsv();
-    setColor({hsv: newHSV, rgb: newRGB, hex: newHex});
+    const clampedG = clamp(value, 0, 255); // Clamp G channel between 0 and 255
+    const newRGB = {...color.rgb, g: clampedG};
+    const tcolor = tinycolor(newRGB);
+    const newcolor = tinyColorToColor(tcolor);
+    setColor(newcolor);
   };
 
   const handleBChange = (value: number) => {
-    const newRGB = {...color.rgb, b: value};
-    const newHex = tinycolor(newRGB).toHexString();
-    const newHSV = tinycolor(newRGB).toHsv();
-    setColor({hsv: newHSV, rgb: newRGB, hex: newHex});
+    const clampedB = clamp(value, 0, 255); // Clamp B channel between 0 and 255
+    const newRGB = {...color.rgb, b: clampedB};
+    const tcolor = tinycolor(newRGB);
+    const newcolor = tinyColorToColor(tcolor);
+    setColor(newcolor);
   };
 
   const handleSLClick = (event) => {
@@ -99,11 +146,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000'}) => {
     const y = event.clientY - rect.top; // Click position Y
     const s = x / rect.width;
     const v = 1 - y / rect.height;
-    const newHSV = {...color.hsv, v: v, s: s};
-    const newHex = tinycolor(newHSV).toHexString();
-    const newRGB = tinycolor(newHSV).toRgb();
-    // Update circle position
-    setColor({hsv: newHSV, rgb: newRGB, hex: newHex});
+    handleSVChange(s * 100, v * 100);
   };
 
   const handleHClick = (event) => {
@@ -114,11 +157,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000'}) => {
     const x = event.clientX - rect.left; // Click position X
     const y = event.clientY - rect.top; // Click position Y
     const h = 360 - (360 * y) / rect.height;
-    const newHSV = {...color.hsv, h: h};
-    const newHex = tinycolor(newHSV).toHexString();
-    const newRGB = tinycolor(newHSV).toRgb();
-    // Update circle position
-    setColor({hsv: newHSV, rgb: newRGB, hex: newHex});
+    handleHChange(h);
   };
 
   useEffect(() => {
@@ -147,6 +186,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000'}) => {
           style={{
             left: `${100 * color.hsv.s}%`,
             top: `${100 - 100 * color.hsv.v}%`, // invert V for top-origin coordinates
+            border: `2px solid ${color.isDark ? '#fff' : '#000'}`, // Set border color
           }}
         ></div>
       </div>
