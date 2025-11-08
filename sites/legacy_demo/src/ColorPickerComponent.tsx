@@ -27,8 +27,12 @@ interface Color {
   hex: string;
 }
 
-const ColorPickerComponent = ({initialColorHex = "#FF0000"}) => {
-  const [color, setColor] = useState<Color | null>({rgb: {r: 0, g: 0, b: 0}, hsv: {h: 0, s: 0, v: 0}, hex: initialColorHex}); 
+const ColorPickerComponent = ({initialColorHex = '#FF0000'}) => {
+  const [color, setColor] = useState<Color | null>({
+    rgb: {r: 0, g: 0, b: 0},
+    hsv: {h: 0, s: 0, v: 0},
+    hex: initialColorHex,
+  });
   const [colorJson, setColorJson] = useState('{}'); // Color JSON as a string
   const cpRef = useRef(null);
 

@@ -1,15 +1,18 @@
 import {defineConfig} from 'vite';
 import postcss from 'rollup-plugin-postcss';
 //import { libInjectCss } from 'vite-plugin-lib-inject-css'
-import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js'
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import react from '@vitejs/plugin-react';
 import dts from 'vite-plugin-dts';
 
 export default defineConfig({
-  plugins: [react(), dts(), cssInjectedByJsPlugin({
-  relativeCSSInjection: true 
-})
-    ],
+  plugins: [
+    react(),
+    dts(),
+    cssInjectedByJsPlugin({
+      relativeCSSInjection: true,
+    }),
+  ],
   build: {
     lib: {
       entry: 'src/index.ts', // your main entry

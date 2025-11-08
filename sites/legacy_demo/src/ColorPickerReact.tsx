@@ -1,11 +1,10 @@
-import React, { useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {ColorPicker} from 'color-mapping-editor';
 
 const ColorPickerReact = () => {
   const [color, setColor] = useState('cyan'); // Default color as a string
   const [colorJson, setColorJson] = useState('{}'); // Color JSON as a string
   const cpRef = useRef(null);
-
 
   return (
     <div className="relative w-full h-[550px] p-6 bg-base-100 rounded-lg flex justify-between">

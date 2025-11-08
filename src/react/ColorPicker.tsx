@@ -97,15 +97,15 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000'}) => {
     const rect = areaDiv.getBoundingClientRect(); // Get dimensions
     const x = event.clientX - rect.left; // Click position X
     const y = event.clientY - rect.top; // Click position Y
-    const s = x/rect.width;
-    const v = 1-y/rect.height;
+    const s = x / rect.width;
+    const v = 1 - y / rect.height;
     const newHSV = {...color.hsv, v: v, s: s};
     const newHex = tinycolor(newHSV).toHexString();
     const newRGB = tinycolor(newHSV).toRgb();
     // Update circle position
     setColor({hsv: newHSV, rgb: newRGB, hex: newHex});
   };
-  
+
   const handleHClick = (event) => {
     const areaDiv = hAreaDivRef.current; // Get the current div
     if (!areaDiv) return; // Early return if ref is not assigned
@@ -113,7 +113,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000'}) => {
     const rect = areaDiv.getBoundingClientRect(); // Get dimensions
     const x = event.clientX - rect.left; // Click position X
     const y = event.clientY - rect.top; // Click position Y
-    const h = 360-360*y/rect.height;
+    const h = 360 - (360 * y) / rect.height;
     const newHSV = {...color.hsv, h: h};
     const newHex = tinycolor(newHSV).toHexString();
     const newRGB = tinycolor(newHSV).toRgb();
@@ -128,30 +128,39 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000'}) => {
   return (
     <div className="color-picker-react-root" style={{width: `${width}px`, height: `${height}px`}}>
       {/* SL Picker */}
-        <div
-          className="color-picker-react-sl-area" ref={slAreaDivRef} onClick={handleSLClick}
-          style={{
-            backgroundImage: `
+      <div
+        className="color-picker-react-sl-area"
+        ref={slAreaDivRef}
+        onClick={handleSLClick}
+        style={{
+          backgroundImage: `
           linear-gradient(to right, rgba(255,255,255,1), hsl(${color.hsv.h}, 100%, 50%)),
           linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,0))
         `,
-          width: `${height}px`, height: `${height}px`}}
-          title="Adjusts the saturation (horizontal) and brightness/value (vertical) for the current hue."
-        >
-          <div className="color-picker-react-sl-picker"     style={{
-      left: `${100*color.hsv.s}%`,
-      top: `${100 - 100*color.hsv.v}%`, // invert V for top-origin coordinates
-    }}></div>
-        </div>
+          width: `${height}px`,
+          height: `${height}px`,
+        }}
+        title="Adjusts the saturation (horizontal) and brightness/value (vertical) for the current hue."
+      >
+        <div
+          className="color-picker-react-sl-picker"
+          style={{
+            left: `${100 * color.hsv.s}%`,
+            top: `${100 - 100 * color.hsv.v}%`, // invert V for top-origin coordinates
+          }}
+        ></div>
+      </div>
 
       {/* H Picker */}
       <div
-        className="color-picker-react-h-area color-picker-react-hue-vertical" ref={hAreaDivRef} onClick={handleHClick}
+        className="color-picker-react-h-area color-picker-react-hue-vertical"
+        ref={hAreaDivRef}
+        onClick={handleHClick}
         style={{width: `${hueWidth}px`, height: `${height}px`, left: `${height + hueGap}px`}}
         title="Hue selector: sets the base color tone (0–360° around the color wheel)"
       >
-  <div className="color-picker-react-h-picker" style={{top: `${100-color.hsv.h/3.6}%`,}}></div>
-       </div> 
+        <div className="color-picker-react-h-picker" style={{top: `${100 - color.hsv.h / 3.6}%`}}></div>
+      </div>
 
       <div
         className="color-picker-react-input-panel"

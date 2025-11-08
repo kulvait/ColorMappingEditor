@@ -9,7 +9,7 @@
     "declarationDir": "dist",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "lib": ["dom", "esnext"],         // <-- includes HTML/DOM types
+    "lib": ["dom", "esnext"], // <-- includes HTML/DOM types
     "baseUrl": "./src",
     "paths": {
       "object-assign-deep": ["../node_modules/object-assign-deep"]
