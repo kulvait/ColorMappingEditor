@@ -15,12 +15,5 @@ export default defineConfig({
     }),
     tailwindcss(),
   ],
-  server: {
-    https: {
-      key: fs.readFileSync(path.resolve(os.homedir(), 'server_keys/server-key.pem')),
-      cert: fs.readFileSync(path.resolve(os.homedir(), 'server_keys/server-cert-AMBCAT.pem')),
-    },
-    host: true,
-    port: 5173, // or your preferred port
   },
-});
+);
