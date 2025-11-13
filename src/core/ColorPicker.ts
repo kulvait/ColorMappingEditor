@@ -41,14 +41,16 @@ export class ColorPicker extends Container {
    */
   private backUpSaturation;
 
+  private rootElement: HTMLDivElement;
+
   /** The saturation and value picker is painted in this canvas. It also handles mouse input. */
-  private readonly svCanvas: HTMLCanvasElement;
+  private svCanvas: HTMLCanvasElement;
 
   /** The context to the svCanvas for convenience. */
   private svContext: CanvasRenderingContext2D;
 
   /** The hue picker is painted in this canvas. It also handles mouse input. */
-  private readonly hCanvas: HTMLCanvasElement;
+  private hCanvas: HTMLCanvasElement;
 
   /** The context to the hCanvas for convenience. */
   private hContext: CanvasRenderingContext2D;
@@ -136,6 +138,7 @@ export class ColorPicker extends Container {
     `;
 
     // Prepare the canvas and context for the saturation and value picker.
+    this.rootElement = this.parent.querySelector('.tfe-color-picker-root') as HTMLDivElement;
     this.svCanvas = this.parent.querySelector<HTMLCanvasElement>('.tfe-color-picker-sl-picker-canvas');
     this.svContext = this.svCanvas.getContext('2d', {alpha: false});
     this.drawSVPicker();
@@ -394,6 +397,54 @@ export class ColorPicker extends Container {
     drawControlPoint(this.svContext, x, y, this.controlPointSize);
   }
 
+  /** Destroys the component and removes it from the DOM. */
+  public destroy() {
+    // 1. Remove all canvas event listeners
+    this.removeSVEventListeners();
+    this.removeHEventListeners();
+
+    // 2. Remove all input listeners (HSV, RGB, HEX)
+    this.removeInputEventListeners();
+
+    // 3. Destroy input fields themselves
+    if (this.inputFields) {
+      for (const key of ['h', 's', 'v', 'r', 'g', 'b'] as const) {
+        this.inputFields[key]?.destroy?.();
+        this.inputFields[key] = undefined;
+      }
+      if (this.inputFields.hex) {
+        this.inputFields.hex = null;
+      }
+      this.inputFields = null;
+    }
+
+    // 4. Clear callbacks
+    this.callbacks?.clear();
+    this.callbacks = null;
+
+    // 5. Remove canvas and root elements from the DOM
+    if (this.svCanvas?.parentElement) this.svCanvas.parentElement.removeChild(this.svCanvas);
+    if (this.hCanvas?.parentElement) this.hCanvas.parentElement.removeChild(this.hCanvas);
+    this.svCanvas = null;
+    this.hCanvas = null;
+    this.svContext = null;
+    this.hContext = null;
+
+    if (this.rootElement?.parentElement) {
+      this.rootElement.parentElement.removeChild(this.rootElement);
+    }
+
+    // 7. Nullify other references
+    this.rootElement = null;
+    this.previewElement = null;
+    this.hsv = null;
+    this.backUpHue = null;
+    this.backUpSaturation = null;
+
+    // 8. Call parent destroy if it exists
+    super.destroy?.();
+  }
+
   /** Draws the hue picker. */
   private drawHPicker() {
     // Draw the hue gradient.
@@ -406,105 +457,148 @@ export class ColorPicker extends Container {
   }
 
   /** Adds all the mouse input events for moving the control point of the saturation-value picker around. */
+  // Saturation-Value (SV) picker listeners
+  private svMouseDownListener: (e: MouseEvent) => void;
+  private svMouseUpListener: (e: MouseEvent) => void;
+  private svAbortController: AbortController | null = null;
+
   private addSVEventListener() {
     let isDragging = false;
-    let abortController: AbortController = null;
 
-    // Gets called when a new value was selected with the mouse.
-    const updateSV = (x, y) => {
-      // Calculate new values from mouse position.
+    const updateSV = (x: number, y: number) => {
       this.hsv.s = clamp(x / this.CANVAS_SIZE, 0, 1);
       this.backUpSaturation = this.hsv.s;
       this.hsv.v = clamp(1 - y / this.CANVAS_SIZE, 0, 1);
 
-      // Send an update to the user.
       this.sendUpdate();
-
-      // Update other relevant components.
       this.drawSVPicker();
       this.updateHSVInputFields();
       this.updateRGBInputFields();
       this.updateHEXInputField();
     };
 
-    // When the left mouse button is pressed we attach a mouse move listener to the document to track the mouse movement
-    // even outside the canvas.
-    this.svCanvas.addEventListener('mousedown', (e) => {
-      if (e.button === 0) {
-        abortController = new AbortController();
-        document.addEventListener(
-          'mousemove',
-          (e) => {
-            e.preventDefault();
-            updateSV(
-              e.clientX - this.svCanvas.getBoundingClientRect().x,
-              e.clientY - this.svCanvas.getBoundingClientRect().y
-            );
-          },
-          {signal: abortController.signal}
-        );
+    // Store the mousedown listener
+    this.svMouseDownListener = (e: MouseEvent) => {
+      if (e.button !== 0) return;
 
-        isDragging = true;
-        updateSV(e.offsetX, e.offsetY);
-      }
-    });
+      this.svAbortController = new AbortController();
 
-    // Stop the drag tracking and remove the move listener from the document.
-    document.addEventListener('mouseup', () => {
-      if (isDragging && abortController) {
-        abortController.abort();
-        abortController = null;
+      // Attach mousemove to document with abort controller
+      document.addEventListener(
+        'mousemove',
+        (e) => {
+          e.preventDefault();
+          updateSV(
+            e.clientX - this.svCanvas.getBoundingClientRect().x,
+            e.clientY - this.svCanvas.getBoundingClientRect().y
+          );
+        },
+        {signal: this.svAbortController.signal}
+      );
+
+      isDragging = true;
+      updateSV(e.offsetX, e.offsetY);
+    };
+
+    // Store mouseup listener
+    this.svMouseUpListener = () => {
+      if (isDragging && this.svAbortController) {
+        this.svAbortController.abort();
+        this.svAbortController = null;
         isDragging = false;
       }
-    });
+    };
+
+    // Attach listeners
+    this.svCanvas.addEventListener('mousedown', this.svMouseDownListener);
+    document.addEventListener('mouseup', this.svMouseUpListener);
+  }
+
+  private removeSVEventListeners() {
+    if (this.svCanvas && this.svMouseDownListener) {
+      this.svCanvas.removeEventListener('mousedown', this.svMouseDownListener);
+      this.svMouseDownListener = null;
+    }
+
+    if (this.svMouseUpListener) {
+      document.removeEventListener('mouseup', this.svMouseUpListener);
+      this.svMouseUpListener = null;
+    }
+
+    if (this.svAbortController) {
+      this.svAbortController.abort();
+      this.svAbortController = null;
+    }
   }
 
   /** Adds all the mouse input events for moving the control point of the hue picker around. */
+  // Hue (H) picker listeners
+  private hMouseDownListener: (e: MouseEvent) => void;
+  private hMouseUpListener: (e: MouseEvent) => void;
+  private hAbortController: AbortController | null = null;
+
   private addHEventListener() {
     let isDragging = false;
-    let abortController: AbortController = null;
 
-    // Gets called when a new value was selected with the mouse.
-    const updateH = (y) => {
-      // Calculate the new value from the mouse position.
+    const updateH = (y: number) => {
       this.hsv.h = clamp(Math.round((1 - y / this.CANVAS_SIZE) * 360), 0, 360);
       this.backUpHue = this.hsv.h;
 
-      // Send an update to the user.
       this.sendUpdate();
-
-      // Update other relevant components.
       this.drawAll();
       this.inputFields.h.setValue(this.hsv.h);
       this.updateRGBInputFields();
       this.updateHEXInputField();
     };
 
-    // When the left mouse button is pressed we attach a mouse move listener to the document to track the mouse movement
-    // even outside the canvas.
-    this.hCanvas.addEventListener('mousedown', (e) => {
-      abortController = new AbortController();
+    // Store mousedown listener
+    this.hMouseDownListener = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+
+      this.hAbortController = new AbortController();
+
       document.addEventListener(
         'mousemove',
         (e) => {
           e.preventDefault();
-          updateH(e.clientY - this.svCanvas.getBoundingClientRect().y);
+          updateH(e.clientY - this.hCanvas.getBoundingClientRect().y);
         },
-        {signal: abortController.signal}
+        {signal: this.hAbortController.signal}
       );
 
       isDragging = true;
       updateH(e.offsetY);
-    });
+    };
 
-    // Stop the drag tracking and remove the move listener from the document.
-    document.addEventListener('mouseup', () => {
-      if (isDragging && abortController) {
-        abortController.abort();
-        abortController = null;
+    // Store mouseup listener
+    this.hMouseUpListener = () => {
+      if (isDragging && this.hAbortController) {
+        this.hAbortController.abort();
+        this.hAbortController = null;
         isDragging = false;
       }
-    });
+    };
+
+    // Attach listeners
+    this.hCanvas.addEventListener('mousedown', this.hMouseDownListener);
+    document.addEventListener('mouseup', this.hMouseUpListener);
+  }
+
+  private removeHEventListeners() {
+    if (this.hCanvas && this.hMouseDownListener) {
+      this.hCanvas.removeEventListener('mousedown', this.hMouseDownListener);
+      this.hMouseDownListener = null;
+    }
+
+    if (this.hMouseUpListener) {
+      document.removeEventListener('mouseup', this.hMouseUpListener);
+      this.hMouseUpListener = null;
+    }
+
+    if (this.hAbortController) {
+      this.hAbortController.abort();
+      this.hAbortController = null;
+    }
   }
 
   /** Adds all the listeners to the text input fields. It also adds validation, so the values are always valid. */
@@ -513,8 +607,26 @@ export class ColorPicker extends Container {
     this.setupHEXListeners();
   }
 
+  /** Convenience method to remove all input event listeners */
+  private removeInputEventListeners() {
+    this.removeNumberInputListeners();
+    this.removeHEXListeners();
+  }
+
   /** Sets up all listeners for the HSV and RGB input fields. */
+  // Store input listeners to remove them later
+  //
+  //
+  /** Stores input listeners so they can be removed on destroy */
+  private hInputListenerId?: number;
+  private sInputListenerId?: number;
+  private vInputListenerId?: number;
+  private rInputListenerId?: number;
+  private gInputListenerId?: number;
+  private bInputListenerId?: number;
+
   private setupNumberInputListeners() {
+    // ... your onHSVUpdate/onRGBUpdate functions
     // Serves to prevent cyclic updates.
     let updateInProgress = false;
 
@@ -541,10 +653,8 @@ export class ColorPicker extends Container {
         updateInProgress = false;
       }
     };
-
-    // hsv
-
-    this.inputFields.h.addListener((value) => {
+    // HSV
+    this.hInputListenerId = this.inputFields.h.addListener((value) => {
       if (value !== this.hsv.h) {
         this.hsv.h = value;
         this.backUpHue = value;
@@ -552,48 +662,63 @@ export class ColorPicker extends Container {
       }
     });
 
-    this.inputFields.s.addListener((value) => {
-      if (value !== this.hsv.s) {
+    this.sInputListenerId = this.inputFields.s.addListener((value) => {
+      if (value !== this.hsv.s * 100) {
         this.hsv.s = value / 100;
         this.backUpSaturation = this.hsv.s;
         onHSVUpdate();
       }
     });
 
-    this.inputFields.v.addListener((value) => {
-      if (value !== this.hsv.v) {
+    this.vInputListenerId = this.inputFields.v.addListener((value) => {
+      if (value !== this.hsv.v * 100) {
         this.hsv.v = value / 100;
         onHSVUpdate();
       }
     });
 
-    // rgb
-
-    this.inputFields.r.addListener((value) => {
+    // RGB
+    this.rInputListenerId = this.inputFields.r.addListener((value) => {
       const oldRGB = this.hsv.rgb();
-      if (value !== oldRGB.r) {
-        onRGBUpdate(value, oldRGB.g, oldRGB.b);
-      }
+      if (value !== oldRGB.r) onRGBUpdate(value, oldRGB.g, oldRGB.b);
     });
 
-    this.inputFields.g.addListener((value) => {
+    this.gInputListenerId = this.inputFields.g.addListener((value) => {
       const oldRGB = this.hsv.rgb();
-      if (value !== oldRGB.g) {
-        onRGBUpdate(oldRGB.r, value, oldRGB.b);
-      }
+      if (value !== oldRGB.g) onRGBUpdate(oldRGB.r, value, oldRGB.b);
     });
 
-    this.inputFields.b.addListener((value) => {
+    this.bInputListenerId = this.inputFields.b.addListener((value) => {
       const oldRGB = this.hsv.rgb();
-      if (value !== oldRGB.b) {
-        onRGBUpdate(oldRGB.r, oldRGB.g, value);
-      }
+      if (value !== oldRGB.b) onRGBUpdate(oldRGB.r, oldRGB.g, value);
     });
   }
 
+  private removeNumberInputListeners() {
+    if (!this.inputFields) return;
+
+    if (this.hInputListenerId !== undefined) this.inputFields.h.removeListener(this.hInputListenerId);
+    if (this.sInputListenerId !== undefined) this.inputFields.s.removeListener(this.sInputListenerId);
+    if (this.vInputListenerId !== undefined) this.inputFields.v.removeListener(this.vInputListenerId);
+    if (this.rInputListenerId !== undefined) this.inputFields.r.removeListener(this.rInputListenerId);
+    if (this.gInputListenerId !== undefined) this.inputFields.g.removeListener(this.gInputListenerId);
+    if (this.bInputListenerId !== undefined) this.inputFields.b.removeListener(this.bInputListenerId);
+
+    this.hInputListenerId = undefined;
+    this.sInputListenerId = undefined;
+    this.vInputListenerId = undefined;
+    this.rInputListenerId = undefined;
+    this.gInputListenerId = undefined;
+    this.bInputListenerId = undefined;
+  }
+
   /** Sets up all listeners for the HEX input field. */
+
+  private hexInputListener: (ev: InputEvent) => void;
+  private hexFocusOutListener: (ev: FocusEvent) => void;
+
   private setupHEXListeners() {
-    this.inputFields.hex.addEventListener('input', (ev: InputEvent) => {
+    this.hexInputListener = (ev: InputEvent) => {
       const element = ev.currentTarget as HTMLInputElement;
       const value = element.value;
       if (/#([0-7a-fA-F]{3}$|[0-7a-fA-F]{6}$)/.exec(value)) {
@@ -607,16 +732,33 @@ export class ColorPicker extends Container {
       } else {
         element.classList.add('tfe-color-picker-input-hex-invalid');
       }
-    });
+    };
 
-    this.inputFields.hex.addEventListener('focusout', (ev: InputEvent) => {
+    this.hexFocusOutListener = (ev: FocusEvent) => {
       const element = ev.currentTarget as HTMLInputElement;
       const value = element.value;
       if (!/#([0-7a-fA-F]{3}$|[0-7a-fA-F]{6}$)/.exec(value)) {
         element.value = this.getHEX();
         element.classList.remove('tfe-color-picker-input-hex-invalid');
       }
-    });
+    };
+
+    this.inputFields.hex.addEventListener('input', this.hexInputListener);
+    this.inputFields.hex.addEventListener('focusout', this.hexFocusOutListener);
+  }
+
+  private removeHEXListeners() {
+    if (!this.inputFields?.hex) return;
+
+    if (this.hexInputListener) {
+      this.inputFields.hex.removeEventListener('input', this.hexInputListener);
+      this.hexInputListener = null;
+    }
+
+    if (this.hexFocusOutListener) {
+      this.inputFields.hex.removeEventListener('focusout', this.hexFocusOutListener);
+      this.hexFocusOutListener = null;
+    }
   }
 
   /** Updates the text in all input fields. */

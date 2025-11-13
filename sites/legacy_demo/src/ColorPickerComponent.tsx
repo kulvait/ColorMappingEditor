@@ -50,7 +50,7 @@ const ColorPickerComponent = ({initialColorHex = '#FF0000'}) => {
 
     return () => {
       // Cleanup the ColorPicker when the component unmounts
-      cp.removeListener();
+      cp.destroy();
     };
   }, [initialColorHex]); // Only run once when the component mounts
 

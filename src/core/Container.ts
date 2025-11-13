@@ -15,4 +15,9 @@ export default class Container {
       throw 'No element given!';
     }
   }
+
+  /** Default destroy method to be overridden by subclasses. */
+  destroy(): void {
+    // Default implementation does nothing.
+  }
 }

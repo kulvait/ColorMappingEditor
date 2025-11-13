@@ -3,12 +3,7 @@ import {ColorMapLegacy} from 'color-mapping-editor';
 
 // Assuming these types are defined or imported from a library
 
-const ColorPickerComponent = ({initialColorHex = '#FF0000'}) => {
-  const [color, setColor] = useState<Color | null>({
-    rgb: {r: 0, g: 0, b: 0},
-    hsv: {h: 0, s: 0, v: 0},
-    hex: initialColorHex,
-  });
+const ColorPickerComponent = ({}) => {
   const [colorMap, setColorMap] = useState('{}'); // Color JSON as a string
   const [colorMapJson, setColorMapJson] = useState('{}'); // Color JSON as a string
   const cmRef = useRef(null);
@@ -40,14 +35,14 @@ const ColorPickerComponent = ({initialColorHex = '#FF0000'}) => {
 
     return () => {
       // Cleanup the ColorPicker when the component unmounts
-      cm.removeListener();
+      cm.destroy();
     };
-  }, [initialColorHex]); // Only run once when the component mounts
+  }, []); // Only run once when the component mounts
 
   return (
     <div className="relative w-full h-[550px] p-6 bg-base-100 rounded-lg flex justify-between">
       {/* Color Picker - top left */}
-      <div ref={cmRef} className="w-[500px] h-[256px] rounded-md p-2">
+      <div ref={cmRef} className="w-[500px] h-[128px] rounded-md p-2">
         {/* Color Picker content goes here */}
       </div>
 

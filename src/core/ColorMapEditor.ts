@@ -31,10 +31,10 @@ import Container from './Container';
  */
 export class ColorMapEditor extends Container {
   /** This element lays out the canvas and all other controls. */
-  private readonly rootElement: HTMLDivElement;
+  private rootElement: HTMLDivElement;
 
   /** The gradient and stops are painted in here. It also handles mouse input. */
-  private readonly canvas: HTMLCanvasElement;
+  private canvas: HTMLCanvasElement;
 
   /** The context for the canvas for convenience. */
   private ctx: CanvasRenderingContext2D;
@@ -58,7 +58,7 @@ export class ColorMapEditor extends Container {
   private showStopNumbers: boolean;
 
   /** The color picker for editing control point colors is embedded in this div. */
-  private readonly colorPickerContainer: HTMLDivElement;
+  private colorPickerContainer: HTMLDivElement;
 
   /** If the interpolation method is set to editable, this element is the selection dropdown. */
   private interpolationMethodElement?: HTMLSelectElement;
@@ -260,6 +260,66 @@ export class ColorMapEditor extends Container {
     return getColorMapBins(this.getColorMap());
   }
 
+  public destroy(): void {
+    // 1. Call parent destroy if it exists
+    if (super.destroy) {
+      super.destroy();
+    }
+
+    // 2. Remove input listeners by replacing nodes with clones (safe way to remove event listeners)
+    if (this.interpolationMethodElement) {
+      this.interpolationMethodElement.replaceWith(this.interpolationMethodElement.cloneNode(true));
+      this.interpolationMethodElement = null;
+    }
+
+    if (this.discreteElement) {
+      this.discreteElement.replaceWith(this.discreteElement.cloneNode(true));
+      this.discreteElement = null;
+    }
+
+    if (this.binsElement) {
+      this.binsElement.replaceWith(this.binsElement.cloneNode(true));
+      this.binsElement = null;
+    }
+
+    // 3. Clear any internal callbacks
+    if (this.callbacks) {
+      this.callbacks.clear();
+    }
+
+    // 4. Remove canvas and root elements from the DOM
+    if (this.canvas) {
+      this.removeCanvasEventListeners(); // cleans mousemove, click, resize observers, etc.
+
+      if (this.canvas.parentElement) {
+        this.canvas.parentElement.removeChild(this.canvas);
+      }
+
+      this.ctx?.clearRect(0, 0, this.canvas.width, this.canvas.height); // optional
+      this.ctx = null;
+      this.canvas = null;
+    }
+    if (this.rootElement?.parentElement) {
+      this.rootElement.parentElement.removeChild(this.rootElement);
+    }
+    this.rootElement = null;
+
+    if (this.colorPickerContainer?.parentElement) {
+      this.colorPickerContainer.parentElement.removeChild(this.colorPickerContainer);
+    }
+
+    // 5. Destroy the color picker and clear reference
+    if (this.colorPicker?.destroy) {
+      this.colorPicker.destroy();
+    }
+    this.colorPicker = null;
+
+    // 6. Null out remaining references
+    this.colorPickerContainer = null;
+    this.canvas = null;
+    this.ctx = null;
+  }
+
   /**
    * Register a callback that gets called, when the color map changes. The callback gets called once immediately.
    *
@@ -333,76 +393,66 @@ export class ColorMapEditor extends Container {
     }
   }
 
-  /** Adds event listeners for adding, removing and moving control points as well as showing the color picker. */
+  // Add these properties to your class
+  private canvasMouseDownListener: (e: MouseEvent) => void;
+  private canvasClickListener: (e: MouseEvent) => void;
+  private canvasContextMenuListener: (e: MouseEvent) => void;
+  private documentMouseUpListener: (e: MouseEvent) => void;
+  private documentMouseMoveListener: (e: MouseEvent) => void;
+  private documentClickListener: (e: MouseEvent) => void;
+  private colorPickerClickListener: (e: MouseEvent) => void;
+  private resizeObserver: ResizeObserver;
+  private abortController: AbortController | null = null;
+  private isDragging = false;
+  private dragIndex = -1;
+  private draggedBefore = false;
+  private colorPickerListenerId = -1;
+
   private addCanvasEventListeners() {
-    // This flag prevents click events to trigger when dragging control points small distances.
-    let draggedBefore = false;
+    this.draggedBefore = false;
+    this.isDragging = false;
+    this.dragIndex = -1;
+    this.abortController = null;
 
-    // Tracks if the user is currently dragging a control point.
-    let isDragging = false;
-
-    // The index of the currently dragged control point.
-    let dragIndex = -1;
-
-    // The AbortController is for removing the mousemove listener from the document, when the user stops dragging.
-    let abortController: AbortController = null;
-
-    /**
-     * This function checks if a control point was selected, sets the dragIndex and isDragging fields and attaches a
-     * mouse move listener to the document. This allows for more consistent control.
-     */
-    const checkDragStart = (e: {offsetX: number; offsetY: number}) => {
-      // Figure out which control point was selected.
-      dragIndex = -1;
+    const checkDragStart = (e: MouseEvent) => {
+      this.dragIndex = -1;
       for (let i = 0; i < this.colorStops.length; i++) {
         const stop = this.colorStops[i];
         const dx = Math.abs(stop.stop * this.canvas.width - e.offsetX);
         if (dx < this.controlPointSize) {
-          dragIndex = i;
-          isDragging = true;
+          this.dragIndex = i;
+          this.isDragging = true;
           break;
         }
       }
 
-      if (isDragging) {
-        // Attach a mouse move listener to the document.
-        abortController = new AbortController();
-        document.addEventListener(
-          'mousemove',
-          (e) => {
-            e.preventDefault();
-
-            if (dragIndex > 0 && dragIndex < this.colorStops.length - 1) {
-              const offsetX = e.clientX - this.canvas.getBoundingClientRect().x;
-              const leftBound = this.colorStops[dragIndex - 1].stop + Number.EPSILON;
-              const rightBound = this.colorStops[dragIndex + 1].stop - Number.EPSILON;
-              this.colorStops[dragIndex].stop = Math.max(leftBound, Math.min(rightBound, offsetX / this.canvas.width));
-              this.draw();
-              this.sendUpdates();
-            }
-
-            draggedBefore = true;
-          },
-          {signal: abortController.signal}
-        );
+      if (this.isDragging) {
+        this.abortController = new AbortController();
+        document.addEventListener('mousemove', this.documentMouseMoveListener, {signal: this.abortController.signal});
       }
     };
 
-    // This listener is responsible for:
-    //  - Starting dragging a control point, if one was pressed on with the left mouse button.
-    //  - Adding a control point if the left mouse button was pressed anywhere else (also starts dragging the newly
-    //    created point).
-    //  - Removing a control point on right click.
-    this.canvas.addEventListener('mousedown', (e) => {
-      draggedBefore = false;
+    // Bound listener for document mousemove
+    this.documentMouseMoveListener = (e: MouseEvent) => {
+      e.preventDefault();
+      if (this.dragIndex > 0 && this.dragIndex < this.colorStops.length - 1) {
+        const offsetX = e.clientX - this.canvas.getBoundingClientRect().x;
+        const leftBound = this.colorStops[this.dragIndex - 1].stop + Number.EPSILON;
+        const rightBound = this.colorStops[this.dragIndex + 1].stop - Number.EPSILON;
+        this.colorStops[this.dragIndex].stop = Math.max(leftBound, Math.min(rightBound, offsetX / this.canvas.width));
+        this.draw();
+        this.sendUpdates();
+      }
+      this.draggedBefore = true;
+    };
 
+    // Mouse down listener
+    this.canvasMouseDownListener = (e: MouseEvent) => {
+      this.draggedBefore = false;
       if (e.button === 0) {
-        // Left Mouse Button
-        // Check if a control point was selected with the left mouse button.
         checkDragStart(e);
-
-        if (!isDragging) {
-          // If no control point was selected a new one is being created and also immediately dragged.
+        if (!this.isDragging) {
+          // Create new control point
           const x = Math.max(0, Math.min(1, e.offsetX / this.canvas.width));
           const color = getColorFromColorMapAt(
             {
@@ -413,17 +463,14 @@ export class ColorMapEditor extends Container {
             },
             x
           );
-          const stop = {stop: x, color};
-          this.colorStops.push(stop);
+          this.colorStops.push({stop: x, color});
           this.sortControlPoints();
           this.draw();
           this.sendUpdates();
           checkDragStart(e);
         }
       } else if (e.button === 2) {
-        // Right Mouse Button
         e.preventDefault();
-        // If a control point was pressed on with the RMB it gets removed.
         for (let i = 1; i < this.colorStops.length - 1; i++) {
           const stop = this.colorStops[i];
           const dx = stop.stop * this.canvas.width - e.offsetX;
@@ -436,107 +483,114 @@ export class ColorMapEditor extends Container {
           }
         }
       }
-    });
+    };
 
-    this.canvas.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    });
-
-    // This listener is responsible to stop the dragging action, once the mouse is lifted.
-    document.addEventListener('mouseup', () => {
-      if (isDragging && abortController) {
-        abortController.abort();
-        abortController = null;
-        isDragging = false;
-        dragIndex = -1;
-      }
-    });
-
-    // This saves the id of the callback from the color picker.
-    let colorPickerListener = -1;
-
-    // When clicking a control point the color picker is shown.
-    this.canvas.addEventListener('click', (e) => {
-      if (draggedBefore) {
-        return;
-      }
-
+    // Other bound listeners
+    this.canvasClickListener = (e: MouseEvent) => {
+      if (this.draggedBefore) return;
       e.stopPropagation();
       let stop = null;
       for (let i = 0; i < this.colorStops.length; i++) {
         stop = this.colorStops[i];
         const dx = Math.abs(stop.stop * this.canvas.width - e.offsetX);
-        if (dx < this.controlPointSize) {
-          break;
-        }
+        if (dx < this.controlPointSize) break;
       }
 
-      if (stop !== null) {
-        // Figure out, where to position the color picker popup, depending on the available space.
+      if (stop) {
         const pageY = this.canvas.height / 2 + this.canvas.getBoundingClientRect().y;
         const viewPortHeight = window.innerHeight;
         const cpHeight = this.colorPickerContainer.clientHeight;
-
-        if (pageY + cpHeight < viewPortHeight) {
-          // Show below the point
-          const y = this.canvas.height / 2;
-          this.colorPickerContainer.style.bottom = `${y}px`;
-        } else if (pageY - cpHeight > 0) {
-          // Show above the point
-          const y = this.canvas.height / 2 + cpHeight;
-          this.colorPickerContainer.style.bottom = `${y}px`;
-        } else {
-          // Show vertically centered on the point
-          const y = this.canvas.height / 2 + cpHeight / 2;
-          this.colorPickerContainer.style.bottom = `${y}px`;
-        }
+        if (pageY + cpHeight < viewPortHeight) this.colorPickerContainer.style.bottom = `${this.canvas.height / 2}px`;
+        else if (pageY - cpHeight > 0)
+          this.colorPickerContainer.style.bottom = `${this.canvas.height / 2 + cpHeight}px`;
+        else this.colorPickerContainer.style.bottom = `${this.canvas.height / 2 + cpHeight / 2}px`;
 
         const pageX = stop.stop * this.canvas.width + this.canvas.getBoundingClientRect().x;
         const viewPortWidth = window.innerWidth;
         const cpWidth = this.colorPickerContainer.clientWidth;
-
-        if (pageX + cpWidth < viewPortWidth) {
-          // Show right of the point
-          const x = stop.stop * this.canvas.width;
-          this.colorPickerContainer.style.left = `${x}px`;
-        } else if (pageX - cpWidth > 0) {
-          // Show left of the point
-          const x = stop.stop * this.canvas.width - cpWidth;
-          this.colorPickerContainer.style.left = `${x}px`;
-        } else {
-          // Show horizontally centered on the point
-          const x = stop.stop * this.canvas.width - cpWidth / 2;
-          this.colorPickerContainer.style.left = `${x}px`;
-        }
+        if (pageX + cpWidth < viewPortWidth)
+          this.colorPickerContainer.style.left = `${stop.stop * this.canvas.width}px`;
+        else if (pageX - cpWidth > 0)
+          this.colorPickerContainer.style.left = `${stop.stop * this.canvas.width - cpWidth}px`;
+        else this.colorPickerContainer.style.left = `${stop.stop * this.canvas.width - cpWidth / 2}px`;
 
         this.colorPickerContainer.style.visibility = 'visible';
-        this.colorPicker.removeListener(colorPickerListener);
+        this.colorPicker.removeListener(this.colorPickerListenerId);
         this.colorPicker.setHEX(stop.color);
-        colorPickerListener = this.colorPicker.addListener((colorPicker) => {
-          stop.color = colorPicker.getHEX();
+        this.colorPickerListenerId = this.colorPicker.addListener((cp) => {
+          stop.color = cp.getHEX();
           this.draw();
           this.sendUpdates();
         });
       }
-    });
+    };
 
-    // Hides the color picker, if you click outside it.
-    document.addEventListener('click', () => {
+    this.canvasContextMenuListener = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+
+    this.documentMouseUpListener = () => {
+      if (this.isDragging && this.abortController) {
+        this.abortController.abort();
+        this.abortController = null;
+        this.isDragging = false;
+        this.dragIndex = -1;
+      }
+    };
+
+    this.documentClickListener = () => {
       this.colorPickerContainer.style.visibility = 'hidden';
-    });
+    };
 
-    // This prevents the color picker from closing when clicking inside it.
-    this.colorPickerContainer.addEventListener('click', (e) => e.stopPropagation());
+    this.colorPickerClickListener = (e: MouseEvent) => e.stopPropagation();
 
-    // Ensures that the canvas gets redrawn when its size changes.
-    const resizeObserver = new ResizeObserver(() => {
+    // Add listeners
+    this.canvas.addEventListener('mousedown', this.canvasMouseDownListener);
+    this.canvas.addEventListener('click', this.canvasClickListener);
+    this.canvas.addEventListener('contextmenu', this.canvasContextMenuListener);
+    this.colorPickerContainer.addEventListener('click', this.colorPickerClickListener);
+    document.addEventListener('mouseup', this.documentMouseUpListener);
+    document.addEventListener('click', this.documentClickListener);
+
+    // ResizeObserver
+    this.resizeObserver = new ResizeObserver(() => {
       this.canvas.width = this.parent.clientWidth;
       this.canvas.height = this.parent.clientHeight;
       this.draw();
     });
-    resizeObserver.observe(this.parent);
+    this.resizeObserver.observe(this.parent);
+  }
+
+  // Removes all canvas-related listeners and observers
+  private removeCanvasEventListeners() {
+    if (!this.canvas) return;
+
+    this.canvas.removeEventListener('mousedown', this.canvasMouseDownListener);
+    this.canvas.removeEventListener('click', this.canvasClickListener);
+    this.canvas.removeEventListener('contextmenu', this.canvasContextMenuListener);
+
+    document.removeEventListener('mouseup', this.documentMouseUpListener);
+    document.removeEventListener('click', this.documentClickListener);
+
+    if (this.colorPickerContainer) {
+      this.colorPickerContainer.removeEventListener('click', this.colorPickerClickListener);
+    }
+
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
+
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+    }
+
+    this.isDragging = false;
+    this.dragIndex = -1;
+    this.draggedBefore = false;
   }
 
   /**

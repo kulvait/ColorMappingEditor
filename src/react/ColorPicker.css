@@ -84,7 +84,7 @@
 
 .color-picker-react-h-picker-line::before,
 .color-picker-react-h-picker-line::after {
-  content: "";
+  content: '';
   display: block;
   width: 0;
   height: 0;
