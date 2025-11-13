@@ -3,17 +3,19 @@ import tinycolor from 'tinycolor2';
 
 import './ColorPicker.css';
 
-interface RGB {
+export interface RGB {
   r: number;
   g: number;
   b: number;
 }
-interface HSV {
+
+export interface HSV {
   h: number;
   s: number;
   v: number;
 }
-interface Color {
+
+export interface Color {
   rgb: RGB;
   hsv: HSV;
   hex: string;
@@ -24,7 +26,7 @@ const clamp = (value: number, min: number, max: number): number => {
   return Math.max(min, Math.min(max, value));
 };
 
-const hexToColor = (hex: string): Color => {
+export const hexToColor = (hex: string): Color => {
   const tcolor = tinycolor(hex);
   if (!tcolor.isValid()) {
     console.error('Invalid hex color:', hex);
