@@ -1,7 +1,7 @@
 // --- Vanilla/D3 exports (keep original functionality)
-export {TransferFunctionEditor} from './core/TransferFunctionEditor.js';
-export {ColorMapEditor} from './core/ColorMapEditor.js';
 export {ColorPicker as ColorPickerLegacy} from './core/ColorPicker.js';
+export {ColorMapEditor as ColorMapLegacy} from './core/ColorMapEditor.js';
+export {TransferFunctionEditor} from './core/TransferFunctionEditor.js';
 export {TransparencyEditor} from './core/TransparencyEditor.js';
 
 // --- React exports

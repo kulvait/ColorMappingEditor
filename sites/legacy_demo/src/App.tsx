@@ -1,5 +1,6 @@
 import ColorPickerComponent from './ColorPickerComponent';
 import ColorPickerReact from './ColorPickerReact';
+import ColorMapComponent from './ColorMapComponent';
 
 function App() {
   return (
@@ -24,9 +25,29 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow flex flex-col items-center justify-center p-6">
+      <main className="flex grow flex-col items-center justify-center p-6">
+        {/* Color Map Legacy*/}
         <div className="w-full bg-base-100 rounded-xl shadow-xl border border-base-300 relative p-6 m-5">
-          {/* Panel Label */}
+          <div className="absolute -top-3 left-4 bg-base-100 px-3 text-sm font-semibold text-secondary border border-base-300 rounded-md">
+            Color Map Legacy
+          </div>
+          <div className="mt-2">
+            <ColorMapComponent />
+          </div>
+        </div>
+
+        {/* Color Map React*/}
+        <div className="w-full bg-base-100 rounded-xl shadow-xl border border-base-300 relative p-6 m-5">
+          <div className="absolute -top-3 left-4 bg-base-100 px-3 text-sm font-semibold text-secondary border border-base-300 rounded-md">
+            Color Map React
+          </div>
+          <div className="mt-2">
+            <ColorPickerComponent />
+          </div>
+        </div>
+
+        {/* Color Picker Legacy*/}
+        <div className="w-full bg-base-100 rounded-xl shadow-xl border border-base-300 relative p-6 m-5">
           <div className="absolute -top-3 left-4 bg-base-100 px-3 text-sm font-semibold text-secondary border border-base-300 rounded-md">
             Color Picker Legacy
           </div>
@@ -36,6 +57,7 @@ function App() {
           </div>
         </div>
 
+        {/* Color Picker React*/}
         <div className="w-full bg-base-100 rounded-xl shadow-xl border border-base-300 relative p-6 m-5">
           {/* Panel Label */}
           <div className="absolute -top-3 left-4 bg-base-100 px-3 text-sm font-semibold text-secondary border border-base-300 rounded-md">

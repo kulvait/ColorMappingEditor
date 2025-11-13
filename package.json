@@ -28,7 +28,7 @@
     "dist"
   ],
   "scripts": {
-    "dev": "vite",
+    "dev": "pnpm -r dev",
     "build": "vite build",
     "prepare": "pnpm run build",
     "preview": "vite preview",

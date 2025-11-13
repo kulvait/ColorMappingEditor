@@ -48,7 +48,7 @@ const tinyColorToColor = (tcolor): Color => {
   }
 };
 
-const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null}) => {
+const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, onConfirm = null}) => {
   const initColor = tinycolor(initHexColor).isValid() ? hexToColor(initHexColor) : hexToColor('#ff0000');
   const [color, setColor] = useState<Color>(initColor);
   const hAreaDivRef = useRef(null);
@@ -77,7 +77,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null}) 
     const tcolor = tinycolor(newHSV);
     const newcolor = tinyColorToColor(tcolor);
     //Fix 360 identical 0
-	newcolor.hsv.h = clampedHue;
+    newcolor.hsv.h = clampedHue;
     setColor(newcolor);
   };
 
@@ -86,8 +86,8 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null}) 
     const newHSV = {...color.hsv, s: clampedSaturation / 100};
     const tcolor = tinycolor(newHSV);
     const newcolor = tinyColorToColor(tcolor);
-	//Fix 360 identical 0
-	newcolor.hsv.h = color.hsv.h;
+    //Fix 360 identical 0
+    newcolor.hsv.h = color.hsv.h;
     setColor(newcolor);
   };
 
@@ -96,8 +96,8 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null}) 
     const newHSV = {...color.hsv, v: clampedValue / 100};
     const tcolor = tinycolor(newHSV);
     const newcolor = tinyColorToColor(tcolor);
-	//Fix 360 identical 0
-	newcolor.hsv.h = color.hsv.h;
+    //Fix 360 identical 0
+    newcolor.hsv.h = color.hsv.h;
     setColor(newcolor);
   };
 
@@ -107,8 +107,8 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null}) 
     const newHSV = {...color.hsv, s: clampedSaturation / 100, v: clampedValue / 100};
     const tcolor = tinycolor(newHSV);
     const newcolor = tinyColorToColor(tcolor);
-	//Fix 360 identical 0
-	newcolor.hsv.h = color.hsv.h;
+    //Fix 360 identical 0
+    newcolor.hsv.h = color.hsv.h;
     setColor(newcolor);
   };
 
@@ -149,6 +149,18 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null}) 
     handleSVChange(s * 100, v * 100);
   };
 
+  const lastSLMoveTimeRef = useRef(0);
+
+  const handleSLPointerMove = (event) => {
+    if (event.buttons !== 1) return; // Only proceed if the left mouse button is pressed
+    //throttle
+    if (event.timeStamp - lastSLMoveTimeRef.current < 50) {
+      return;
+    }
+    lastSLMoveTimeRef.current = event.timeStamp;
+    handleSLClick(event); // Reuse the click handler logic
+  };
+
   const handleHClick = (event) => {
     const areaDiv = hAreaDivRef.current; // Get the current div
     if (!areaDiv) return; // Early return if ref is not assigned
@@ -158,6 +170,18 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null}) 
     const y = event.clientY - rect.top; // Click position Y
     const h = 360 - (360 * y) / rect.height;
     handleHChange(h);
+  };
+
+  const lastHMoveTimeRef = useRef(0);
+
+  const handleHMove = (event) => {
+    if (event.buttons !== 1) return; // Only proceed if the left mouse button is pressed
+    //throttle
+    if (event.timeStamp - lastHMoveTimeRef.current < 50) {
+      return;
+    }
+    lastHMoveTimeRef.current = event.timeStamp;
+    handleHClick(event); // Reuse the click handler logic
   };
 
   useEffect(() => {
@@ -171,6 +195,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null}) 
         className="color-picker-react-sl-area"
         ref={slAreaDivRef}
         onClick={handleSLClick}
+        onPointerMove={handleSLPointerMove}
         style={{
           backgroundImage: `
           linear-gradient(to right, rgba(255,255,255,1), hsl(${color.hsv.h}, 100%, 50%)),
@@ -196,10 +221,11 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null}) 
         className="color-picker-react-h-area color-picker-react-hue-vertical"
         ref={hAreaDivRef}
         onClick={handleHClick}
+        onPointerMove={handleHMove}
         style={{width: `${hueWidth}px`, height: `${height}px`, left: `${height + hueGap}px`}}
         title="Hue selector: sets the base color tone (0–360° around the color wheel)"
       >
-        <div className="color-picker-react-h-picker" style={{top: `${100 - color.hsv.h / 3.6}%`}}></div>
+        <div className="color-picker-react-h-picker-line" style={{top: `${100 - color.hsv.h / 3.6}%`}}></div>
       </div>
 
       <div
@@ -295,6 +321,18 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null}) 
 
         {/* HEX input */}
         <input className="color-picker-react-hex-input" type="text" maxLength={7} value={color.hex} readOnly />
+
+        {/* Confirm Button */}
+        {onConfirm && typeof onConfirm === 'function' && (
+          <button
+            className="color-picker-react-confirm-button"
+            onClick={() => {
+              onConfirm(color);
+            }}
+          >
+            Confirm
+          </button>
+        )}
       </div>
     </div>
   );
