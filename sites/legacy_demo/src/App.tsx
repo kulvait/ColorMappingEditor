@@ -1,6 +1,7 @@
 import ColorPickerComponent from './ColorPickerComponent';
 import ColorPickerReact from './ColorPickerReact';
 import ColorMapComponent from './ColorMapComponent';
+import ColorMapReact from './ColorMapReact';
 
 function App() {
   return (
@@ -36,16 +37,15 @@ function App() {
           </div>
         </div>
 
-        {/* Color Map React
+        {/* Color Map React */}
         <div className="w-full bg-base-100 rounded-xl shadow-xl border border-base-300 relative p-6 m-5">
           <div className="absolute -top-3 left-4 bg-base-100 px-3 text-sm font-semibold text-secondary border border-base-300 rounded-md">
             Color Map React
           </div>
           <div className="mt-2">
-            <ColorPickerComponent />
+            <ColorMapReact />
           </div>
         </div>
-	*/}
 
         {/* Color Picker Legacy*/}
         <div className="w-full bg-base-100 rounded-xl shadow-xl border border-base-300 relative p-6 m-5">

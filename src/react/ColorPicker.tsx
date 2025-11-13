@@ -22,6 +22,14 @@ export interface Color {
   isDark: boolean;
 }
 
+/** Fallback for invalid colors */
+const invalidColor: Color = {
+  rgb: {r: 0, g: 0, b: 0},
+  hsv: {h: 0, s: 0, v: 0},
+  hex: '#000000',
+  isDark: false,
+};
+
 const clamp = (value: number, min: number, max: number): number => {
   return Math.max(min, Math.min(max, value));
 };
@@ -36,7 +44,7 @@ export const hexToColor = (hex: string): Color => {
 
 const tinyColorToColor = (tcolor): Color => {
   if (!tcolor.isValid()) {
-    return {rgb: {r: 0, g: 0, b: 0}, hsv: {h: 0, s: 0, v: 0}, isDark: false, hex: '#000000'};
+    return invalidColor;
   } else {
     const rgb = tcolor.toRgb();
     const hsv = tcolor.toHsv();
@@ -62,6 +70,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
   const inputGap = 3;
   const inputWidth = 75;
   const width = height + hueGap + hueWidth + inputGap + inputWidth;
+  console.log('ColorPicker width:', width);
 
   const cpRef = useRef(null);
 

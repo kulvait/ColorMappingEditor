@@ -1,0 +1,187 @@
+.color-picker-react-hue-horizontal {
+  background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+}
+
+.color-picker-react-hue-vertical {
+  background: linear-gradient(to top, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+}
+
+.color-picker-react-root {
+  position: relative;
+  /* border: 1px solid #ef4444; red-500 */
+  background-color: #fff;
+  box-sizing: border-box;
+}
+
+/* === SL PICKER (Saturation–Value square) === */
+
+.color-picker-react-sl-picker {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border: 2px solid #fff; /* white hollow border */
+  border-radius: 50%;
+  background-color: transparent;
+  transform: translate(-50%, -50%); /* center on S/V coordinate */
+  pointer-events: none; /* allow clicks to pass through */
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.6); /* optional for better visibility */
+
+  left: 50%;
+  top: 50%;
+}
+
+/* The gradient area inside SV picker */
+.color-picker-react-sl-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 0;
+  /*  overflow: hidden;*/
+  width: 100%;
+  height: 100%;
+  display: flex;
+  background-blend-mode: multiply;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+/* === H PICKER (Hue bar) === */
+.color-picker-react-h-area {
+  position: absolute;
+  top: 0;
+  border: none;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  cursor: pointer;
+  touch-action: none;
+  overflow: hidden;
+}
+
+.color-picker-react-h-picker {
+  /*background-color: rgba(0, 0, 0, 0.8); Circle color */
+  border: 3px solid rgba(0, 0, 0, 0.8); /* Hollow circle border */
+  border-radius: 50%; /* Makes the div circular */
+  height: 15px; /* Circle height */
+  width: 15px; /* Circle width */
+  position: relative; /* Positioning */
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%); /* Center the circle */
+}
+
+.color-picker-react-h-picker-line {
+  position: absolute;
+  height: 0px; /* thickness of the line */
+  display: flex;
+  width: 100%; /* length of the line */
+  border: none;
+
+  background-color: rgba(0, 0, 0, 0.8);
+  transform: translateY(-50%);
+}
+
+.color-picker-react-h-picker-line::before,
+.color-picker-react-h-picker-line::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  transform: translateY(-50%);
+}
+
+.color-picker-react-h-picker-line::before {
+  position: absolute;
+  /* left arrow pointing right → */
+  border-left: 9px solid rgba(0, 0, 0, 0.8);
+  margin-left: 0px;
+  left: 0;
+}
+
+.color-picker-react-h-picker-line::after {
+  position: absolute;
+  /* right arrow pointing left ← */
+  border-right: 9px solid rgba(0, 0, 0, 0.8);
+  right: 0;
+  margin-right: 0px;
+}
+
+/* === PREVIEW AND INPUT FORM === */
+.color-picker-react-preview {
+  width: 100%;
+  height: 24px;
+  border: 1px solid #6b7280; /* gray-500 */
+  border-radius: 0.5rem;
+}
+
+.color-picker-react-input-group {
+  display: flex;
+  flex-direction: column;
+  padding: 2px 0;
+}
+
+/* Shared style for all input rows (H, S, V, R, G, B) */
+.color-picker-react-input-div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem; /* text-xs */
+  height: 24px;
+  margin-bottom: 3px;
+}
+
+.color-picker-react-input-div input {
+  height: 24px;
+  width: 56px;
+  border: 1px solid #9ca3af;
+  border-radius: 0.125rem;
+  text-align: right;
+  font-size: 0.75rem;
+  /*  box-sizing: border-box;*/
+}
+
+/* Optional subtle hover effect for inputs */
+.color-picker-react-input-div input:hover {
+  border-color: #34373e; /* gray-500 */
+}
+
+/* === HEX INPUT === */
+.color-picker-react-hex-input {
+  height: 24px;
+  width: 100%;
+  border: 1px solid #9ca3af;
+  border-radius: 0.125rem;
+  padding: 0 0.25rem;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.color-picker-react-hex-input:hover {
+  border-color: #34373e;
+}
+
+/* === Layout helpers for flex column container === */
+.color-picker-react-input-panel {
+  position: relative;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 2px;
+  gap: 0.25rem;
+  box-sizing: border-box;
+}
+
+/* Confirm button styles */
+.color-picker-react-confirm-button {
+  width: 100%;
+  height: 28px;
+  background-color: #3b82f6; /* blue-500 */
+  color: #fff;
+  border: none;
+  border-radius: 0.375rem; /* rounded-md */
+  font-size: 0.875rem; /* text-sm */
+  cursor: pointer;
+}

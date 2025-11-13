@@ -47,7 +47,7 @@ const ColorPickerComponent = ({}) => {
       </div>
 
       {/* JSON display - top right */}
-      <pre className="w-[300px] h-full bg-gray-800 text-gray-300 p-4 rounded-lg border border-gray-600 overflow-auto relative">
+      <pre className="w-[350px] h-full bg-gray-800 text-gray-300 p-4 rounded-lg border border-gray-600 overflow-auto relative">
         {/* Color preview inside top-right corner of pre */}
         {colorMapJson}
       </pre>
