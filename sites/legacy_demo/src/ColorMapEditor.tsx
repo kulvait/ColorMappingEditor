@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-
+import {ColorPicker} from 'color-mapping-editor';
 import type {Color} from 'color-mapping-editor';
 import {hexToColor} from 'color-mapping-editor';
 import {INVALID_COLOR} from 'color-mapping-editor';
@@ -232,7 +232,7 @@ function computeCommonExponent(start: number, end: number, zeroExponentRange: [n
 
 function formatSmart(value: number): string {
   if (value === 0) return '0';
-  let exponent = computeCommonExponent(value, value, [0, 0]);
+  const exponent = computeCommonExponent(value, value, [0, 0]);
 
   if (exponent > 1) {
     return value.toFixed(0);
@@ -279,6 +279,28 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
   const [colorMap, setColorMap] = useState<ColorMap>(initiaalCM);
   const canvasRef = useRef<HTMLDivElement>(null);
 
+  //Store picker properties
+  const [pickerPointIndex, setPickerPointIndex] = useState<number | null>(null);
+  const [pickerPos, setPickerPos] = useState({x: 0, y: 0});
+  const [pickerColor, setPickerColor] = useState<Color | null>(null);
+
+  useEffect(() => {
+    if (pickerPointIndex === null || pickerColor === null) return;
+
+    setColorMap((prevMap) => {
+      const updated = {...prevMap};
+      updated.controlPoints = [...prevMap.controlPoints];
+
+      // Update the color of the selected point
+      updated.controlPoints[pickerPointIndex] = {
+        ...updated.controlPoints[pickerPointIndex],
+        color: pickerColor, // store as hex or as object
+      };
+
+      return updated;
+    });
+  }, [pickerColor, pickerPointIndex]);
+
   // Effect to render the color map on the canvas
   useEffect(() => {
     if (onChange && typeof onChange === 'function') {
@@ -289,15 +311,101 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
 
   const interpolationOptions = Object.values(ColorInterpolation);
   let rulerHeight = 0;
+
+  let ticks, exponent;
   if (showRuler) {
     rulerHeight = 30;
+    ({ticks, exponent} = renderRulerTicksNormalized(colorMap.startRange ?? 0, colorMap.endRange ?? 1, 5));
   }
   const settingsHeight = 30;
   const settingsTopMargin = 10;
   const height = stripHeight + rulerHeight + settingsHeight + settingsTopMargin;
 
-  const {ticks, exponent} = renderRulerTicksNormalized(colorMap.startRange ?? 0, colorMap.endRange ?? 1, 5);
+  function handleRemoveIndex(e: React.MouseEvent, index: number) {
+    e.preventDefault();
 
+    const cpDiv = e.currentTarget as HTMLDivElement; // the clicked div
+    const rect = cpDiv.getBoundingClientRect();
+
+    const isInside =
+      e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+
+    if (!isInside) return;
+
+    console.log('Purge index:', index);
+    // Right click → remove control point at index
+    setColorMap((prev) => ({
+      ...prev,
+      controlPoints: prev.controlPoints.filter((_, i) => i !== index),
+    }));
+    setPickerPointIndex(null);
+    setPickerColor(null);
+    return;
+  }
+
+  function handleOnClick(e: React.MouseEvent, index: number) {
+    if (moveHandled) {
+      setMoveHandled(false);
+      return;
+    }
+    e.stopPropagation();
+
+    const cpDiv = e.currentTarget as HTMLDivElement; // the clicked div
+    const rect = cpDiv.getBoundingClientRect();
+
+    const isInside =
+      e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+
+    if (!isInside) return;
+
+    console.log('Opening color picker at point index:', index);
+
+    // get canvas rect for positioning picker
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    setPickerPos({
+      x: e.clientX - canvasRect.left,
+      y: stripHeight + 8, // below the strip
+    });
+
+    setPickerPointIndex(index);
+    setPickerColor(colorMap.controlPoints[index].color);
+  }
+
+  const lastPointMoveTimeRef = useRef(0);
+  const [moveHandled, setMoveHandled] = useState(false);
+  const handlePickerMove = (e: React.PointerEvent<HTMLDivElement>, index: number) => {
+    if (e.buttons !== 1) return; // only if left button is pressed
+
+    // throttle
+    if (e.timeStamp - lastPointMoveTimeRef.current < 50) return;
+    lastPointMoveTimeRef.current = e.timeStamp;
+
+    if (!canvasRef.current) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    let newT = (e.clientX - rect.left) / rect.width;
+
+    // clamp between 0 and 1
+    newT = Math.max(0, Math.min(1, newT));
+
+    // compute actual position in the colorMap domain
+    const start = colorMap.startRange ?? 0;
+    const end = colorMap.endRange ?? 1;
+    const newPos = start + newT * (end - start);
+
+    // update the colorMap state immutably
+    setColorMap((prev) => {
+      const newControlPoints = [...prev.controlPoints];
+      newControlPoints[index] = {
+        ...newControlPoints[index],
+        position: newPos,
+      };
+      return {...prev, controlPoints: newControlPoints};
+    });
+    setMoveHandled(true);
+  };
+
+  const [isDragging, setIsDragging] = useState(false);
   return (
     <div className="color-map-editor-react-root" style={{width: `${width}px`, height: `${height}px`}}>
       {/* Strip with actual interpolation */}
@@ -324,7 +432,24 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
               style={{
                 left: `${t * width}px`,
                 background: `${pointColor.hex}`,
+                ...(isDragging ? {cursor: 'none'} : {}),
               }}
+              onClick={(e) => handleOnClick(e, index)}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.currentTarget.setPointerCapture(e.pointerId);
+                setIsDragging(true); // start hiding cursor
+              }}
+              onPointerMove={(e) => {
+                handlePickerMove(e, index);
+              }}
+              onPointerUp={(e) => {
+                e.preventDefault();
+                e.currentTarget.releasePointerCapture(e.pointerId);
+                setIsDragging(false); // restore cursor
+              }}
+              onContextMenu={(e) => handleRemoveIndex(e, index)}
+              title={`Index: ${index}, Position: ${formatSmart(cp.position)}, Color: ${pointColor.hex}`}
             />
           );
         })}
@@ -339,6 +464,31 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
               ×10<sup>{exponent}</sup>
             </div>
           )}
+        </div>
+      )}
+
+      {/*Color picker*/}
+      {pickerPointIndex !== null && pickerColor && (
+        <div
+          style={{
+            position: 'absolute',
+            left: pickerPos.x,
+            top: pickerPos.y,
+            zIndex: 100,
+          }}
+        >
+          <ColorPicker
+            key={pickerPointIndex} //Forces remount
+            initHexColor={pickerColor.hex}
+            onChange={(newColor) => {
+              setPickerColor(newColor); // update picker preview
+            }}
+            onConfirm={(newColor) => {
+              // Update the actual color in your colorMap.controlPoints
+              setPickerColor(newColor);
+              setPickerPointIndex(null); // close picker
+            }}
+          />
         </div>
       )}
 

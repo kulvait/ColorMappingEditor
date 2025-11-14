@@ -138,6 +138,8 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
     console.log(JSON.stringify(color, null, 2));
   }, [color]); // Only run once when the component mounts
 
+  const [isDragging, setIsDragging] = useState(false);
+
   return (
     <div ref={cpRef} className="color-picker-react-root" style={{width: `${width}px`, height: `${height}px`}}>
       {/* SL Picker */}
@@ -149,10 +151,12 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
         onPointerDown={(e) => {
           e.preventDefault();
           e.currentTarget.setPointerCapture(e.pointerId);
+          setIsDragging(true); // start hiding cursor
         }}
         onPointerUp={(e) => {
           e.preventDefault();
           e.currentTarget.releasePointerCapture(e.pointerId);
+          setIsDragging(false); // restore cursor
         }}
         style={{
           backgroundImage: `
@@ -161,6 +165,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
         `,
           width: `${height}px`,
           height: `${height}px`,
+          cursor: isDragging ? 'none' : 'crosshair',
         }}
         title="Adjusts the saturation (horizontal) and brightness/value (vertical) for the current hue."
       >
@@ -184,12 +189,19 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
         onPointerDown={(e) => {
           e.preventDefault();
           e.currentTarget.setPointerCapture(e.pointerId);
+          setIsDragging(true); // start hiding cursor
         }}
         onPointerUp={(e) => {
           e.preventDefault();
           e.currentTarget.releasePointerCapture(e.pointerId);
+          setIsDragging(false); // restore cursor
         }}
-        style={{width: `${hueWidth}px`, height: `${height}px`, left: `${height + hueGap}px`}}
+        style={{
+          width: `${hueWidth}px`,
+          height: `${height}px`,
+          left: `${height + hueGap}px`,
+          cursor: isDragging ? 'none' : 'default',
+        }}
         title="Hue selector: sets the base color tone (0–360° around the color wheel)"
       >
         <div className="color-picker-react-h-picker-line" style={{top: `${100 - color.hsv.h / 3.6}%`}}></div>

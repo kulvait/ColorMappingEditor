@@ -29,7 +29,6 @@
   border-radius: 50%;
   background-color: transparent;
   transform: translate(-50%, -50%); /* center on S/V coordinate */
-  pointer-events: none; /* allow clicks to pass through */
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.6); /* optional for better visibility */
 
   left: 50%;
@@ -44,7 +43,6 @@
   border-radius: 50%;
   background-color: transparent;
   transform: translate(-50%, -50%); /* center on S/V coordinate */
-  pointer-events: none; /* allow clicks to pass through */
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.6); /* optional for better visibility */
 
   left: 50%;
