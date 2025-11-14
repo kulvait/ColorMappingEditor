@@ -170,6 +170,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
             left: `${100 * color.hsv.s}%`,
             top: `${100 - 100 * color.hsv.v}%`, // invert V for top-origin coordinates
             border: `2px solid ${color.isDark ? '#fff' : '#000'}`, // Set border color
+            backgroundColor: color.hex,
           }}
         ></div>
       </div>

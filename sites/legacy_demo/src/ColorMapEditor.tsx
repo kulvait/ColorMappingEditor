@@ -5,6 +5,8 @@ import {hexToColor} from 'color-mapping-editor';
 import {INVALID_COLOR} from 'color-mapping-editor';
 import {ColorInterpolation} from 'color-mapping-editor';
 
+import chroma from 'chroma-js';
+
 import './ColorMapEditor.css';
 
 /** A single color stop in the color map */
@@ -40,6 +42,51 @@ interface ColorMapString {
   interpolationMethod: ColorInterpolation;
   startRange?: number;
   endRange?: number;
+}
+
+export function getColorAtPosition(colorMap: ColorMap, position: number): Color {
+  const {controlPoints, interpolationMethod, startRange = 0, endRange = 1} = colorMap;
+
+  if (!controlPoints || controlPoints.length === 0) {
+    return '#000000'; // fallback
+  }
+
+  // Normalize position to [0,1] range of the gradient
+  const t = (position - startRange) / (endRange - startRange === 0 ? 1 : endRange - startRange);
+
+  // Clamp
+  const u = Math.min(1, Math.max(0, t));
+
+  // If only one stop → trivial case
+  if (controlPoints.length === 1) {
+    return chroma(controlPoints[0].color).hex();
+  }
+
+  // Find surrounding control points
+  let left = controlPoints[0];
+  let right = controlPoints[controlPoints.length - 1];
+
+  for (let i = 0; i < controlPoints.length - 1; i++) {
+    const a = controlPoints[i];
+    const b = controlPoints[i + 1];
+
+    if (u >= a.position && u <= b.position) {
+      left = a;
+      right = b;
+      break;
+    }
+  }
+
+  // Normalize between local interval
+  const localT = (u - left.position) / (right.position - left.position === 0 ? 1 : right.position - left.position);
+
+  const colors = [left.color, right.color];
+
+  // Pick chroma interpolation mode
+  const mode = interpolationMethod.toLowerCase(); // "rgb", "lab", "hsl", etc.
+  console.log('Using ', mode, 'and', localT);
+
+  return hexToColor(chroma.mix(colors[0].hex, colors[1].hex, localT, mode).hex());
 }
 
 /** Converts a ColorMapString → ColorMap (parsed color objects) */
@@ -132,8 +179,8 @@ const defaultOptions: ColorMapEditorOptions = {
       // {position: 1, color: 'red'},
     ],
     interpolationMethod: ColorInterpolation.LAB,
-    startRange: 1.1e-3, // optional
-    endRange: 5e-3, // optional
+    startRange: 0, // optional
+    endRange: 1, // optional
   },
   showStopNumbers: false,
   interpolationMethodsEditable: true,
@@ -216,30 +263,6 @@ function renderRulerTicksNormalized(start: number, end: number, steps: number) {
   return {ticks, exponent};
 }
 
-function formatRulerValue(value: number) {
-  // Use scientific notation for very small or very large numbers
-  if (Math.abs(value) < 0.001 || Math.abs(value) >= 1000) {
-    return value.toExponential(2); // e.g., 1.23e-5
-  }
-  return value.toFixed(2); // e.g., 0.42
-}
-
-function renderRulerTicks(start: number, end: number, steps: number) {
-  const ticks = [];
-  const stepSize = (end - start) / (steps - 1);
-
-  for (let i = 0; i < steps; i++) {
-    const value = start + stepSize * i;
-    ticks.push(
-      <div key={i} className="color-map-editor-react-ruler-tick-wrapper" style={{left: `${(i / (steps - 1)) * 100}%`}}>
-        <div className="color-map-editor-react-ruler-tick"></div>
-        <div className="color-map-editor-react-ruler-label">{formatRulerValue(value)}</div>
-      </div>
-    );
-  }
-  return ticks;
-}
-
 const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
   width = defaultOptions.width,
   stripHeight = defaultOptions.stripHeight,
@@ -287,7 +310,25 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
           background: getColorMapGradient(colorMap),
         }}
         title="Actual color map"
-      ></div>
+      >
+        {/* Render control points inside canvas */}
+        {colorMap.controlPoints.map((cp, index) => {
+          const t =
+            (cp.position - (colorMap.startRange ?? 0)) / ((colorMap.endRange ?? 1) - (colorMap.startRange ?? 0) || 1);
+          const pointColor = getColorAtPosition(colorMap, t);
+          const isDark = pointColor.isDark;
+          return (
+            <div
+              key={index}
+              className={`${isDark ? 'color-map-editor-react-picker-white' : 'color-map-editor-react-picker-black'}`}
+              style={{
+                left: `${t * width}px`,
+                background: `${pointColor.hex}`,
+              }}
+            />
+          );
+        })}
+      </div>
 
       {/* Ruler */}
       {showRuler && (
