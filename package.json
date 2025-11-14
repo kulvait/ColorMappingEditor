@@ -12,13 +12,12 @@
     "url": "git@github.com:kulvait/ColorMappingEditor.git"
   },
   "keywords": [
-    "react",
-    "vtk.js",
     "transfer function",
     "color mapping",
     "opacity",
-    "d3",
-    "visualization"
+    "visualization",
+    "react",
+    "vtk.js"
   ],
   "type": "module",
   "main": "dist/color-mapping-editor.umd.js",
@@ -39,6 +38,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "chroma-js": "^3.1.2",
     "d3-color": "^3.1.0",
     "d3-hsv": "^0.1.0",
     "d3-interpolate": "^3.0.1",

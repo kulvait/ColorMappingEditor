@@ -1,7 +1,10 @@
 import React, {useEffect, useRef, useState} from 'react';
 import tinycolor from 'tinycolor2';
+import chroma from 'chroma-js';
 
 import './ColorPicker.css';
+
+export type ChromaColor = ReturnType<typeof chroma>;
 
 export interface RGB {
   r: number;
@@ -34,12 +37,14 @@ const clamp = (value: number, min: number, max: number): number => {
   return Math.max(min, Math.min(max, value));
 };
 
-export const hexToColor = (hex: string): Color => {
-  const tcolor = tinycolor(hex);
-  if (!tcolor.isValid()) {
-    console.error('Invalid hex color:', hex);
+export const hexToColor = (hex: any): Color => {
+  if (!chroma.valid(hex)) {
+    console.error('Invalid color:', hex);
+    return invalidColor;
+  }else
+  {
+    return chromaColorToColor(chroma(hex));
   }
-  return tinyColorToColor(tcolor);
 };
 
 const tinyColorToColor = (tcolor): Color => {
@@ -58,8 +63,25 @@ const tinyColorToColor = (tcolor): Color => {
   }
 };
 
+
+const chromaColorToColor = (tcolor): Color => {
+  if (!chroma.valid(tcolor)) {
+    return invalidColor;
+  } else {
+    const rgb = tcolor.rgb();
+    const hsv = tcolor.hsv();
+    const dark = tcolor.luminance() < 0.5;
+    return {
+      rgb: {r: rgb[0], g: rgb[1], b: rgb[2]},
+      hsv: {h: hsv[0], s: hsv[1], v: hsv[2]},
+      hex: tcolor.hex(),
+      isDark: dark,
+    };
+  }
+};
+
 const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, onConfirm = null}) => {
-  const initColor = tinycolor(initHexColor).isValid() ? hexToColor(initHexColor) : hexToColor('#ff0000');
+  const initColor = chroma.valid(initHexColor) ? hexToColor(initHexColor) : hexToColor('#ff0000');
   const [color, setColor] = useState<Color>(initColor);
   const hAreaDivRef = useRef(null);
   const slAreaDivRef = useRef(null);
@@ -85,8 +107,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
   const handleHChange = (value: number) => {
     const clampedHue = clamp(value, 0, 360);
     const newHSV = {...color.hsv, h: clampedHue};
-    const tcolor = tinycolor(newHSV);
-    const newcolor = tinyColorToColor(tcolor);
+    const newcolor = hexToColor(newHSV);
     //Fix 360 identical 0
     newcolor.hsv.h = clampedHue;
     setColor(newcolor);
@@ -95,8 +116,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
   const handleSChange = (value: number) => {
     const clampedSaturation = clamp(value, 0, 100); // Clamp saturation between 0 and 100
     const newHSV = {...color.hsv, s: clampedSaturation / 100};
-    const tcolor = tinycolor(newHSV);
-    const newcolor = tinyColorToColor(tcolor);
+    const newcolor = hexToColor(newHSV);
     //Fix 360 identical 0
     newcolor.hsv.h = color.hsv.h;
     setColor(newcolor);
@@ -105,8 +125,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
   const handleVChange = (value: number) => {
     const clampedValue = clamp(value, 0, 100); // Clamp value (brightness) between 0 and 100
     const newHSV = {...color.hsv, v: clampedValue / 100};
-    const tcolor = tinycolor(newHSV);
-    const newcolor = tinyColorToColor(tcolor);
+    const newcolor = hexToColor(newHSV);
     //Fix 360 identical 0
     newcolor.hsv.h = color.hsv.h;
     setColor(newcolor);
@@ -116,8 +135,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
     const clampedSaturation = clamp(sValue, 0, 100);
     const clampedValue = clamp(vValue, 0, 100);
     const newHSV = {...color.hsv, s: clampedSaturation / 100, v: clampedValue / 100};
-    const tcolor = tinycolor(newHSV);
-    const newcolor = tinyColorToColor(tcolor);
+    const newcolor = hexToColor(newHSV);
     //Fix 360 identical 0
     newcolor.hsv.h = color.hsv.h;
     setColor(newcolor);
@@ -127,24 +145,21 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
   const handleRChange = (value: number) => {
     const clampedR = clamp(value, 0, 255); // Clamp R channel between 0 and 255
     const newRGB = {...color.rgb, r: clampedR};
-    const tcolor = tinycolor(newRGB);
-    const newcolor = tinyColorToColor(tcolor);
+    const newcolor = hexToColor(newRGB);
     setColor(newcolor);
   };
 
   const handleGChange = (value: number) => {
     const clampedG = clamp(value, 0, 255); // Clamp G channel between 0 and 255
     const newRGB = {...color.rgb, g: clampedG};
-    const tcolor = tinycolor(newRGB);
-    const newcolor = tinyColorToColor(tcolor);
+    const newcolor = hexToColor(newRGB);
     setColor(newcolor);
   };
 
   const handleBChange = (value: number) => {
     const clampedB = clamp(value, 0, 255); // Clamp B channel between 0 and 255
     const newRGB = {...color.rgb, b: clampedB};
-    const tcolor = tinycolor(newRGB);
-    const newcolor = tinyColorToColor(tcolor);
+    const newcolor = hexToColor(newRGB);
     setColor(newcolor);
   };
 
@@ -207,6 +222,8 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
         ref={slAreaDivRef}
         onClick={handleSLClick}
         onPointerMove={handleSLPointerMove}
+        onPointerDown={(e) => {e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId);}}
+        onPointerUp={(e) => {e.preventDefault(); e.currentTarget.releasePointerCapture(e.pointerId);}}
         style={{
           backgroundImage: `
           linear-gradient(to right, rgba(255,255,255,1), hsl(${color.hsv.h}, 100%, 50%)),
@@ -233,6 +250,8 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
         ref={hAreaDivRef}
         onClick={handleHClick}
         onPointerMove={handleHMove}
+        onPointerDown={(e) => {e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId);}}
+        onPointerUp={(e) => {e.preventDefault(); e.currentTarget.releasePointerCapture(e.pointerId);}}
         style={{width: `${hueWidth}px`, height: `${height}px`, left: `${height + hueGap}px`}}
         title="Hue selector: sets the base color tone (0–360° around the color wheel)"
       >
