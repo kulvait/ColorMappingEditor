@@ -12,7 +12,10 @@ export {hexToColor} from './utils';
 
 // --- Type exports
 export type {RGB, HSV, Color} from './types';
+
+// --- Constant exports
 export {INVALID_COLOR} from './types';
+export {ColorInterpolation} from './types';
 
 // For utility files / types, also add .js
 export * from './core/convert.js';

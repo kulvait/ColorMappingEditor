@@ -1,15 +1,15 @@
 import React, {useEffect, useRef, useState} from 'react';
 import chroma from 'chroma-js';
-import { Color } from '../types';
-import { hexToColor, clamp } from '../utils';
+import {Color} from '../types';
+import {hexToColor, clamp} from '../utils';
 
 import './ColorPicker.css';
 
 const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, onConfirm = null}) => {
   const initColor = chroma.valid(initHexColor) ? hexToColor(initHexColor) : hexToColor('#ff0000');
   const [color, setColor] = useState<Color>(initColor);
-  const hAreaDivRef = useRef<HTMLDivElement|null>(null);
-  const slAreaDivRef = useRef<HTMLDivElement|null>(null);
+  const hAreaDivRef = useRef<HTMLDivElement | null>(null);
+  const slAreaDivRef = useRef<HTMLDivElement | null>(null);
 
   //Put it in Rem  = 16px
   const hueGap = 3;
@@ -102,7 +102,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
 
   const lastSLMoveTimeRef = useRef(0);
 
-  const handleSLPointerMove = (event : React.PointerEvent<HTMLDivElement>) => {
+  const handleSLPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.buttons !== 1) return; // Only proceed if the left mouse button is pressed
     //throttle
     if (event.timeStamp - lastSLMoveTimeRef.current < 50) {
@@ -124,7 +124,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
 
   const lastHMoveTimeRef = useRef(0);
 
-  const handleHMove = (event : React.PointerEvent<HTMLDivElement>) => {
+  const handleHMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.buttons !== 1) return; // Only proceed if the left mouse button is pressed
     //throttle
     if (event.timeStamp - lastHMoveTimeRef.current < 50) {
@@ -146,8 +146,14 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
         ref={slAreaDivRef}
         onClick={handleSLClick}
         onPointerMove={handleSLPointerMove}
-        onPointerDown={(e) => {e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId);}}
-        onPointerUp={(e) => {e.preventDefault(); e.currentTarget.releasePointerCapture(e.pointerId);}}
+        onPointerDown={(e) => {
+          e.preventDefault();
+          e.currentTarget.setPointerCapture(e.pointerId);
+        }}
+        onPointerUp={(e) => {
+          e.preventDefault();
+          e.currentTarget.releasePointerCapture(e.pointerId);
+        }}
         style={{
           backgroundImage: `
           linear-gradient(to right, rgba(255,255,255,1), hsl(${color.hsv.h}, 100%, 50%)),
@@ -174,16 +180,18 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
         ref={hAreaDivRef}
         onClick={handleHClick}
         onPointerMove={handleHMove}
-        onPointerDown={(e) => {e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId);}}
-        onPointerUp={(e) => {e.preventDefault(); e.currentTarget.releasePointerCapture(e.pointerId);}}
+        onPointerDown={(e) => {
+          e.preventDefault();
+          e.currentTarget.setPointerCapture(e.pointerId);
+        }}
+        onPointerUp={(e) => {
+          e.preventDefault();
+          e.currentTarget.releasePointerCapture(e.pointerId);
+        }}
         style={{width: `${hueWidth}px`, height: `${height}px`, left: `${height + hueGap}px`}}
         title="Hue selector: sets the base color tone (0–360° around the color wheel)"
       >
-
-<div
-  className="color-picker-react-h-picker-line"  style={{ top: `${100 - color.hsv.h / 3.6}%` }}
-></div>
-
+        <div className="color-picker-react-h-picker-line" style={{top: `${100 - color.hsv.h / 3.6}%`}}></div>
       </div>
 
       <div

@@ -3,23 +3,9 @@ import React, {useEffect, useRef, useState} from 'react';
 import type {Color} from 'color-mapping-editor';
 import {hexToColor} from 'color-mapping-editor';
 import {INVALID_COLOR} from 'color-mapping-editor';
+import {ColorInterpolation} from 'color-mapping-editor';
 
 import './ColorMapEditor.css';
-
-// The interpolation method options (adjust if your enum differs)
-// Will be subset of the VTK enum values:
-// #define VTK_CTF_RGB 0
-// #define VTK_CTF_HSV 1
-// #define VTK_CTF_LAB 2
-// #define VTK_CTF_DIVERGING 3
-// #define VTK_CTF_LAB_CIEDE2000 4
-// #define VTK_CTF_STEP 5
-// #define VTK_CTF_PROLAB 6
-enum InterpolationMethod {
-  RGB = 'RGB',
-  HSV = 'HSV',
-  LAB = 'LAB',
-}
 
 /** A single color stop in the color map */
 export interface ControlPoint {
@@ -36,7 +22,7 @@ export interface ColorMap {
   controlPoints: ControlPoint[];
 
   /** Interpolation method between color stops */
-  interpolationMethod: InterpolationMethod;
+  interpolationMethod: ColorInterpolation;
 
   /** Domain range covered by the color map */
   startRange?: number;
@@ -51,7 +37,7 @@ interface ControlPointString {
 
 interface ColorMapString {
   controlPoints: ControlPointString[];
-  interpolationMethod: InterpolationMethod;
+  interpolationMethod: ColorInterpolation;
   startRange?: number;
   endRange?: number;
 }
@@ -128,7 +114,9 @@ export interface ColorMapEditorOptions {
   width: number;
 
   /** Height of the editor in pixels */
-  height: number;
+  stripHeight: number;
+
+  showRuler: boolean;
 
   /** Callback when the color map changes */
   onChange?: (colorMap: ColorMap) => void;
@@ -137,22 +125,23 @@ export interface ColorMapEditorOptions {
 const defaultOptions: ColorMapEditorOptions = {
   initialColorMap: {
     controlPoints: [
-      //      { position: 0, color: 'green' },
-      //      { position: 0.5, color: 'yellow' },
-      //      { position: 1, color: 'red' },
-      {position: 0, color: 'blue'},
+      {position: 0, color: 'green'},
+      {position: 0.5, color: 'yellow'},
       {position: 1, color: 'red'},
+      // {position: 0, color: 'blue'},
+      // {position: 1, color: 'red'},
     ],
-    interpolationMethod: InterpolationMethod.RGB,
-    startRange: 0, // optional
-    endRange: 1, // optional
+    interpolationMethod: ColorInterpolation.LAB,
+    startRange: 1.1e-3, // optional
+    endRange: 5e-3, // optional
   },
   showStopNumbers: false,
   interpolationMethodsEditable: true,
   binSelectorEditable: true,
   controlPointSize: 7,
-  width: 353,
-  height: 50,
+  width: 500,
+  stripHeight: 50,
+  showRuler: true,
 };
 
 const getColorMapGradient = (colorMap: ColorMap): string => {
@@ -165,13 +154,13 @@ const getColorMapGradient = (colorMap: ColorMap): string => {
 
   let colorSpace: string;
   switch (colorMap.interpolationMethod) {
-    case InterpolationMethod.HSV:
+    case ColorInterpolation.HSV:
       colorSpace = 'hsl'; // Equivalent to HSV in CSS
       break;
-    case InterpolationMethod.RGB:
+    case ColorInterpolation.RGB:
       colorSpace = 'srgb'; // Use RGB in srgb color space
       break;
-    case InterpolationMethod.LAB:
+    case ColorInterpolation.LAB:
       colorSpace = 'oklab'; // CSS supports oklab, a good approximation for LAB
       break;
     default:
@@ -182,14 +171,84 @@ const getColorMapGradient = (colorMap: ColorMap): string => {
   return `linear-gradient(in ${colorSpace} to right, ${stops.join(', ')})`;
 };
 
+function computeCommonExponent(start: number, end: number, zeroExponentRange: [number, number] = [-2, 2]) {
+  const maxAbs = Math.max(Math.abs(start), Math.abs(end));
+  if (maxAbs === 0) return 0;
+
+  const exponent = Math.floor(Math.log10(maxAbs));
+
+  // Only use exponent if outside the normal range (-2 to 2) for more readable ticks
+  if (exponent >= zeroExponentRange[0] && exponent <= zeroExponentRange[1]) return 0;
+
+  return exponent;
+}
+
+function formatSmart(value: number): string {
+  if (value === 0) return '0';
+  let exponent = computeCommonExponent(value, value, [0, 0]);
+
+  if (exponent > 1) {
+    return value.toFixed(0);
+  } else if (exponent == 0) {
+    return value.toFixed(1);
+  } else {
+    return value.toFixed(-exponent);
+  }
+}
+
+function renderRulerTicksNormalized(start: number, end: number, steps: number) {
+  const exponent = computeCommonExponent(start, end);
+  const factor = Math.pow(10, exponent);
+  const ticks = [];
+  const stepSize = (end - start) / (steps - 1);
+
+  for (let i = 0; i < steps; i++) {
+    const value = start + stepSize * i;
+    const normalized = value / factor;
+    ticks.push(
+      <div key={i} className="color-map-editor-react-ruler-tick-wrapper" style={{left: `${(i / (steps - 1)) * 100}%`}}>
+        <div className="color-map-editor-react-ruler-tick"></div>
+        <div className="color-map-editor-react-ruler-label">{formatSmart(normalized)}</div>
+      </div>
+    );
+  }
+
+  return {ticks, exponent};
+}
+
+function formatRulerValue(value: number) {
+  // Use scientific notation for very small or very large numbers
+  if (Math.abs(value) < 0.001 || Math.abs(value) >= 1000) {
+    return value.toExponential(2); // e.g., 1.23e-5
+  }
+  return value.toFixed(2); // e.g., 0.42
+}
+
+function renderRulerTicks(start: number, end: number, steps: number) {
+  const ticks = [];
+  const stepSize = (end - start) / (steps - 1);
+
+  for (let i = 0; i < steps; i++) {
+    const value = start + stepSize * i;
+    ticks.push(
+      <div key={i} className="color-map-editor-react-ruler-tick-wrapper" style={{left: `${(i / (steps - 1)) * 100}%`}}>
+        <div className="color-map-editor-react-ruler-tick"></div>
+        <div className="color-map-editor-react-ruler-label">{formatRulerValue(value)}</div>
+      </div>
+    );
+  }
+  return ticks;
+}
+
 const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
   width = defaultOptions.width,
-  height = defaultOptions.height,
+  stripHeight = defaultOptions.stripHeight,
   showStopNumbers = defaultOptions.showStopNumbers,
   interpolationMethodsEditable = defaultOptions.interpolationMethodsEditable,
   binSelectorEditable = defaultOptions.binSelectorEditable,
   controlPointSize = defaultOptions.controlPointSize,
   initialColorMap = defaultOptions.initialColorMap,
+  showRuler = defaultOptions.showRuler,
   onChange,
 }) => {
   // State to hold the current color map
@@ -205,6 +264,17 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
     }
   }, [colorMap, onChange]);
 
+  const interpolationOptions = Object.values(ColorInterpolation);
+  let rulerHeight = 0;
+  if (showRuler) {
+    rulerHeight = 30;
+  }
+  const settingsHeight = 30;
+  const settingsTopMargin = 10;
+  const height = stripHeight + rulerHeight + settingsHeight + settingsTopMargin;
+
+  const {ticks, exponent} = renderRulerTicksNormalized(colorMap.startRange ?? 0, colorMap.endRange ?? 1, 5);
+
   return (
     <div className="color-map-editor-react-root" style={{width: `${width}px`, height: `${height}px`}}>
       {/* Strip with actual interpolation */}
@@ -213,11 +283,54 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
         ref={canvasRef}
         style={{
           width: `${width}px`,
-          height: `${height}px`,
+          height: `${stripHeight}px`,
           background: getColorMapGradient(colorMap),
         }}
         title="Actual color map"
       ></div>
+
+      {/* Ruler */}
+      {showRuler && (
+        <div className="color-map-editor-react-ruler" style={{width: `${width}px`}}>
+          {ticks}
+          {exponent !== 0 && (
+            <div className="color-map-editor-react-ruler-multiplier">
+              ×10<sup>{exponent}</sup>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Settings panel */}
+      <div
+        className="color-map-editor-react-settings"
+        style={{
+          display: 'flex',
+          flexFlow: 'wrap',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <label className="color-map-editor-react-interpolation-method-label">
+          Interpolation:{' '}
+          <select
+            className="color-map-editor-react-interpolation-method-select"
+            value={colorMap.interpolationMethod}
+            onChange={(e) =>
+              setColorMap((prev) => ({
+                ...prev,
+                interpolationMethod: e.target.value as ColorInterpolation,
+              }))
+            }
+          >
+            {interpolationOptions.map((method) => (
+              <option key={method} className="color-map-editor-react-interpolation-method-option" value={method}>
+                {method}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
     </div>
   );
 };

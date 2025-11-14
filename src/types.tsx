@@ -1,6 +1,5 @@
 import chroma from 'chroma-js';
 
-
 export type ChromaColor = ReturnType<typeof chroma>;
 
 export interface RGB {
@@ -29,3 +28,13 @@ export const INVALID_COLOR: Color = {
   hex: '#000000',
   isDark: false,
 };
+
+// Corresponding to VTK constants:
+// #define VTK_CTF_RGB 0
+// #define VTK_CTF_HSV 1
+// #define VTK_CTF_LAB 2
+export enum ColorInterpolation {
+  RGB = 'RGB',
+  HSV = 'HSV',
+  LAB = 'LAB',
+}

@@ -490,11 +490,13 @@ export class ColorMapEditor extends Container {
       if (this.draggedBefore) return;
       e.stopPropagation();
       let stop = null;
-for (const s of this.colorStops) {
-  const dx = Math.abs(s.stop * this.canvas.width - e.offsetX);
-  if (dx < this.controlPointSize) { stop = s; break;}
-}
-
+      for (const s of this.colorStops) {
+        const dx = Math.abs(s.stop * this.canvas.width - e.offsetX);
+        if (dx < this.controlPointSize) {
+          stop = s;
+          break;
+        }
+      }
 
       if (stop) {
         const pageY = this.canvas.height / 2 + this.canvas.getBoundingClientRect().y;

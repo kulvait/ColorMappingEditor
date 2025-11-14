@@ -67,7 +67,7 @@ export class TransferFunctionEditor {
         this.container = container;
       }
     } else {
-		throw new Error('No element given!');
+      throw new Error('No element given!');
     }
 
     // Set all defaults.

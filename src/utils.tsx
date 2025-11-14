@@ -1,5 +1,5 @@
 import chroma from 'chroma-js';
-import { Color, INVALID_COLOR } from './types';  // import types & constants
+import {Color, INVALID_COLOR} from './types'; // import types & constants
 
 export const clamp = (value: number, min: number, max: number): number => {
   return Math.max(min, Math.min(max, value));
@@ -7,15 +7,14 @@ export const clamp = (value: number, min: number, max: number): number => {
 
 type ColorInput =
   | string
-  | { r: number; g: number; b: number; a?: number }
-  | { h: number; s: number; v: number; a?: number }
+  | {r: number; g: number; b: number; a?: number}
+  | {h: number; s: number; v: number; a?: number};
 
 export const hexToColor = (hex: ColorInput): Color => {
   if (!chroma.valid(hex)) {
     console.error('Invalid color:', hex);
     return INVALID_COLOR;
-  }else
-  {
+  } else {
     return chromaColorToColor(chroma(hex));
   }
 };

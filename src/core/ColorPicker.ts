@@ -641,7 +641,7 @@ export class ColorPicker extends Container {
       }
     };
 
-    const onRGBUpdate = (r:number, g:number, b:number) => {
+    const onRGBUpdate = (r: number, g: number, b: number) => {
       if (!updateInProgress) {
         updateInProgress = true;
         this.hsv = d3HSV(`rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`);
@@ -819,7 +819,7 @@ export interface ColorPickerOptions {
 }
 
 /** Simple utility to clamp a number between two values. */
-function clamp(number:number, min:number, max:number): number {
+function clamp(number: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, number));
 }
 

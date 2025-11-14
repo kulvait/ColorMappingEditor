@@ -12,7 +12,7 @@ export default class Container {
         this.parent = container;
       }
     } else {
-throw new Error('Missing mandatory constructor parameter: container');
+      throw new Error('Missing mandatory constructor parameter: container');
     }
   }
 
