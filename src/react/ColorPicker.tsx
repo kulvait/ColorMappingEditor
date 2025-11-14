@@ -1,90 +1,15 @@
 import React, {useEffect, useRef, useState} from 'react';
-import tinycolor from 'tinycolor2';
 import chroma from 'chroma-js';
+import { Color } from '../types';
+import { hexToColor, clamp } from '../utils';
 
 import './ColorPicker.css';
-
-export type ChromaColor = ReturnType<typeof chroma>;
-
-export interface RGB {
-  r: number;
-  g: number;
-  b: number;
-}
-
-export interface HSV {
-  h: number;
-  s: number;
-  v: number;
-}
-
-export interface Color {
-  rgb: RGB;
-  hsv: HSV;
-  hex: string;
-  isDark: boolean;
-}
-
-/** Fallback for invalid colors */
-const invalidColor: Color = {
-  rgb: {r: 0, g: 0, b: 0},
-  hsv: {h: 0, s: 0, v: 0},
-  hex: '#000000',
-  isDark: false,
-};
-
-const clamp = (value: number, min: number, max: number): number => {
-  return Math.max(min, Math.min(max, value));
-};
-
-export const hexToColor = (hex: any): Color => {
-  if (!chroma.valid(hex)) {
-    console.error('Invalid color:', hex);
-    return invalidColor;
-  }else
-  {
-    return chromaColorToColor(chroma(hex));
-  }
-};
-
-const tinyColorToColor = (tcolor): Color => {
-  if (!tcolor.isValid()) {
-    return invalidColor;
-  } else {
-    const rgb = tcolor.toRgb();
-    const hsv = tcolor.toHsv();
-    const dark = tcolor.isDark();
-    return {
-      rgb: {r: rgb.r, g: rgb.g, b: rgb.b},
-      hsv: {h: hsv.h, s: hsv.s, v: hsv.v},
-      hex: tcolor.toHexString(),
-      isDark: dark,
-    };
-  }
-};
-
-
-const chromaColorToColor = (tcolor): Color => {
-  if (!chroma.valid(tcolor)) {
-    return invalidColor;
-  } else {
-    const rgb = tcolor.rgb();
-    const hsv = tcolor.hsv();
-    const dark = tcolor.luminance() < 0.5;
-    return {
-      rgb: {r: rgb[0], g: rgb[1], b: rgb[2]},
-      hsv: {h: hsv[0], s: hsv[1], v: hsv[2]},
-      hex: tcolor.hex(),
-      isDark: dark,
-    };
-  }
-};
 
 const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, onConfirm = null}) => {
   const initColor = chroma.valid(initHexColor) ? hexToColor(initHexColor) : hexToColor('#ff0000');
   const [color, setColor] = useState<Color>(initColor);
-  const hAreaDivRef = useRef(null);
-  const slAreaDivRef = useRef(null);
+  const hAreaDivRef = useRef<HTMLDivElement|null>(null);
+  const slAreaDivRef = useRef<HTMLDivElement|null>(null);
 
   //Put it in Rem  = 16px
   const hueGap = 3;
@@ -163,7 +88,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
     setColor(newcolor);
   };
 
-  const handleSLClick = (event) => {
+  const handleSLClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const areaDiv = slAreaDivRef.current; // Get the current div
     if (!areaDiv) return; // Early return if ref is not assigned
 
@@ -177,7 +102,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
 
   const lastSLMoveTimeRef = useRef(0);
 
-  const handleSLPointerMove = (event) => {
+  const handleSLPointerMove = (event : React.PointerEvent<HTMLDivElement>) => {
     if (event.buttons !== 1) return; // Only proceed if the left mouse button is pressed
     //throttle
     if (event.timeStamp - lastSLMoveTimeRef.current < 50) {
@@ -187,12 +112,11 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
     handleSLClick(event); // Reuse the click handler logic
   };
 
-  const handleHClick = (event) => {
+  const handleHClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const areaDiv = hAreaDivRef.current; // Get the current div
     if (!areaDiv) return; // Early return if ref is not assigned
 
     const rect = areaDiv.getBoundingClientRect(); // Get dimensions
-    const x = event.clientX - rect.left; // Click position X
     const y = event.clientY - rect.top; // Click position Y
     const h = 360 - (360 * y) / rect.height;
     handleHChange(h);
@@ -200,7 +124,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
 
   const lastHMoveTimeRef = useRef(0);
 
-  const handleHMove = (event) => {
+  const handleHMove = (event : React.PointerEvent<HTMLDivElement>) => {
     if (event.buttons !== 1) return; // Only proceed if the left mouse button is pressed
     //throttle
     if (event.timeStamp - lastHMoveTimeRef.current < 50) {
@@ -215,7 +139,7 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
   }, [color]); // Only run once when the component mounts
 
   return (
-    <div className="color-picker-react-root" style={{width: `${width}px`, height: `${height}px`}}>
+    <div ref={cpRef} className="color-picker-react-root" style={{width: `${width}px`, height: `${height}px`}}>
       {/* SL Picker */}
       <div
         className="color-picker-react-sl-area"
@@ -255,7 +179,11 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
         style={{width: `${hueWidth}px`, height: `${height}px`, left: `${height + hueGap}px`}}
         title="Hue selector: sets the base color tone (0–360° around the color wheel)"
       >
-        <div className="color-picker-react-h-picker-line" style={{top: `${100 - color.hsv.h / 3.6}%`}}></div>
+
+<div
+  className="color-picker-react-h-picker-line"  style={{ top: `${100 - color.hsv.h / 3.6}%` }}
+></div>
+
       </div>
 
       <div

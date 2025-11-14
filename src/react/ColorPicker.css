@@ -109,6 +109,85 @@
   margin-right: 0px;
 }
 
+/* ---------- BLACK VARIANT ---------- */
+.color-picker-react-h-picker-line-black {
+  position: absolute;
+  height: 0px; /* thickness of the line */
+  display: flex;
+  width: 100%; /* length of the line */
+  border: none;
+
+  background-color: rgba(0, 0, 0, 0.8);
+  transform: translateY(-50%);
+}
+
+.color-picker-react-h-picker-line-black::before,
+.color-picker-react-h-picker-line-black::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  transform: translateY(-50%);
+}
+
+.color-picker-react-h-picker-line-black::before {
+  position: absolute;
+  /* left arrow pointing right → */
+  border-left: 9px solid rgba(0, 0, 0, 0.8);
+  margin-left: 0px;
+  left: 0;
+}
+
+.color-picker-react-h-picker-line-black::after {
+  position: absolute;
+  /* right arrow pointing left ← */
+  border-right: 9px solid rgba(0, 0, 0, 0.8);
+  right: 0;
+  margin-right: 0px;
+}
+
+
+/* ---------- WHITE VARIANT ---------- */
+.color-picker-react-h-picker-line-white {
+  position: absolute;
+  height: 0px; /* thickness of the line */
+  display: flex;
+  width: 100%; /* length of the line */
+  border: none;
+
+  background-color: rgba(255, 255, 255, 0.8);
+  transform: translateY(-50%);
+}
+
+.color-picker-react-h-picker-line-white::before,
+.color-picker-react-h-picker-line-white::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  transform: translateY(-50%);
+}
+
+.color-picker-react-h-picker-line-white::before {
+  position: absolute;
+  /* left arrow pointing right → */
+  border-left: 9px solid rgba(255, 255, 255, 0.8);
+  margin-left: 0px;
+  left: 0;
+}
+
+.color-picker-react-h-picker-line-white::after {
+  position: absolute;
+  /* right arrow pointing left ← */
+  border-right: 9px solid rgba(255, 255, 255, 0.8);
+  right: 0;
+  margin-right: 0px;
+}
+
 /* === PREVIEW AND INPUT FORM === */
 .color-picker-react-preview {
   width: 100%;

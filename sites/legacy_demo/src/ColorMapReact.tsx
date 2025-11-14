@@ -1,18 +1,13 @@
 import React, {useRef, useState} from 'react';
-import {ColorPicker} from 'color-mapping-editor';
-import type {Color} from 'color-mapping-editor'; // Import the Color type
-import {hexToColor} from 'color-mapping-editor'; // Path to your ColorPicker file
 import ColorMapEditor from './ColorMapEditor';
 import {colorMapToColorMapString} from './ColorMapEditor';
 
 //import ColorPicker from './ColorPicker'; // Adjust the import path as necessary
 
-const ColorMapReact = ({}) => {
-  const [colorMap, setColorMap] = useState({}); // Color map state
+const ColorMapReact = () => {
   const [textJson, setTextJson] = useState('{}'); // Color JSON as a string
   const mapRef = useRef(null);
   const onChangeHandler = (newColorMap) => {
-    setColorMap(newColorMap); // Update the color state for display
     setTextJson(JSON.stringify(colorMapToColorMapString(newColorMap), null, 2)); // Pretty-print JSON
     console.log('Selected Color Map:', newColorMap);
   };

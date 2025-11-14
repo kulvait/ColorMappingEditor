@@ -268,15 +268,15 @@ export class TransparencyEditor extends Container {
 
     // Draw the control points.
     this.ctx.fillStyle = 'white';
-    for (let i = 0; i < this.alphaStops.length; i++) {
-      const x = this.alphaStops[i].stop * this.canvas.width;
-      const y = (1 - this.alphaStops[i].alpha) * this.canvas.height;
-      this.ctx.strokeStyle = 'black';
-      this.ctx.beginPath();
-      this.ctx.arc(x, y, this.controlPointSize, 0, 2 * Math.PI);
-      this.ctx.fill();
-      this.ctx.stroke();
-    }
+for (const stop of this.alphaStops) {
+  const x = stop.stop * this.canvas.width;
+  const y = (1 - stop.alpha) * this.canvas.height;
+  this.ctx.strokeStyle = 'black';
+  this.ctx.beginPath();
+  this.ctx.arc(x, y, this.controlPointSize, 0, 2 * Math.PI);
+  this.ctx.fill();
+  this.ctx.stroke();
+}
   }
 
   /** Helper function to ensure all control points are in the correct order. */

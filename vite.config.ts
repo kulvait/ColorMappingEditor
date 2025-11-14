@@ -1,5 +1,5 @@
 import {defineConfig} from 'vite';
-import postcss from 'rollup-plugin-postcss';
+//import postcss from 'rollup-plugin-postcss';
 //import { libInjectCss } from 'vite-plugin-lib-inject-css'
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import react from '@vitejs/plugin-react';

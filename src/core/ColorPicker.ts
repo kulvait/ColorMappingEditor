@@ -138,7 +138,7 @@ export class ColorPicker extends Container {
     `;
 
     // Prepare the canvas and context for the saturation and value picker.
-    this.rootElement = this.parent.querySelector('.tfe-color-picker-root') as HTMLDivElement;
+    this.rootElement = this.parent.querySelector('.tfe-color-picker-root')!;
     this.svCanvas = this.parent.querySelector<HTMLCanvasElement>('.tfe-color-picker-sl-picker-canvas');
     this.svContext = this.svCanvas.getContext('2d', {alpha: false});
     this.drawSVPicker();
@@ -641,7 +641,7 @@ export class ColorPicker extends Container {
       }
     };
 
-    const onRGBUpdate = (r, g, b) => {
+    const onRGBUpdate = (r:number, g:number, b:number) => {
       if (!updateInProgress) {
         updateInProgress = true;
         this.hsv = d3HSV(`rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`);
@@ -819,7 +819,7 @@ export interface ColorPickerOptions {
 }
 
 /** Simple utility to clamp a number between two values. */
-function clamp(number, min, max): number {
+function clamp(number:number, min:number, max:number): number {
   return Math.max(min, Math.min(max, number));
 }
 

@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 
 import type {Color} from 'color-mapping-editor';
 import {hexToColor} from 'color-mapping-editor';
+import {INVALID_COLOR} from 'color-mapping-editor';
 
 import './ColorMapEditor.css';
 
@@ -14,19 +15,11 @@ import './ColorMapEditor.css';
 // #define VTK_CTF_LAB_CIEDE2000 4
 // #define VTK_CTF_STEP 5
 // #define VTK_CTF_PROLAB 6
-export enum InterpolationMethod {
+enum InterpolationMethod {
   RGB = 'RGB',
   HSV = 'HSV',
   LAB = 'LAB',
 }
-
-/** Fallback for invalid colors */
-const invalidColor: Color = {
-  rgb: {r: 0, g: 0, b: 0},
-  hsv: {h: 0, s: 0, v: 0},
-  hex: '#000000',
-  isDark: false,
-};
 
 /** A single color stop in the color map */
 export interface ControlPoint {
@@ -68,7 +61,7 @@ export const colorMapStringToColorMap = (map: ColorMapString): ColorMap => {
   return {
     controlPoints: map.controlPoints.map((cp) => {
       const color = hexToColor(cp.color);
-      if (color.hex === invalidColor.hex && color.isDark === invalidColor.isDark) {
+      if (color.hex === INVALID_COLOR.hex && color.isDark === INVALID_COLOR.isDark) {
         console.warn(`Invalid color string "${cp.color}" in ColorMapString; using fallback color.`);
       }
       return {
@@ -141,10 +134,6 @@ export interface ColorMapEditorOptions {
   onChange?: (colorMap: ColorMap) => void;
 }
 
-const clamp = (value: number, min: number, max: number): number => {
-  return Math.max(min, Math.min(max, value));
-};
-
 const defaultOptions: ColorMapEditorOptions = {
   initialColorMap: {
     controlPoints: [
@@ -174,7 +163,7 @@ const getColorMapGradient = (colorMap: ColorMap): string => {
     return `${cp.color.hex} ${cp.position * 100}%`;
   });
 
-  var colorSpace: string;
+  let colorSpace: string;
   switch (colorMap.interpolationMethod) {
     case InterpolationMethod.HSV:
       colorSpace = 'hsl'; // Equivalent to HSV in CSS

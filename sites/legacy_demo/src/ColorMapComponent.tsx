@@ -3,8 +3,7 @@ import {ColorMapLegacy} from 'color-mapping-editor';
 
 // Assuming these types are defined or imported from a library
 
-const ColorPickerComponent = ({}) => {
-  const [colorMap, setColorMap] = useState('{}'); // Color JSON as a string
+const ColorMapComponent = () => {
   const [colorMapJson, setColorMapJson] = useState('{}'); // Color JSON as a string
   const cmRef = useRef(null);
 
@@ -29,7 +28,6 @@ const ColorPickerComponent = ({}) => {
 
     cm.addListener((cm) => {
       const cmp = cm.discrete ? cm.getDiscreteColorMap() : cm.getColorMap();
-      setColorMap(cmp);
       setColorMapJson(JSON.stringify(cmp, null, 2));
     });
 
@@ -55,4 +53,4 @@ const ColorPickerComponent = ({}) => {
   );
 };
 
-export default ColorPickerComponent;
+export default ColorMapComponent;
