@@ -391,11 +391,57 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
     // compute actual position in the colorMap domain
     const start = colorMap.startRange ?? 0;
     const end = colorMap.endRange ?? 1;
-    const newPos = start + newT * (end - start);
+    let newPos = start + newT * (end - start);
 
     // update the colorMap state immutably
     setColorMap((prev) => {
       const newControlPoints = [...prev.controlPoints];
+      //Restrict movement based on neighbors
+      const leftNeighbor = newControlPoints[index - 1];
+      const rightNeighbor = newControlPoints[index + 1];
+
+      // --- NEW LOGIC: clamp outermost points to map range ---
+      const minLimit = leftNeighbor ? leftNeighbor.position : start;
+      const maxLimit = rightNeighbor ? rightNeighbor.position : end;
+
+      // clamp to allowed range
+      newPos = Math.max(minLimit, Math.min(maxLimit, newPos));
+
+      let mergedIndex = newControlPoints.findIndex((cp, i) => {
+        i !== index && cp.position === newPos;
+      });
+      //Remove point if there are more than 2 points and we are merging or we merge to a boundary
+      if (mergedIndex !== -1 && newControlPoints.length > 2) {
+        const isStart = index === 0 && newPos === start;
+        const isEnd = index === newControlPoints.length - 1 && newPos === end;
+        const sameAtPosition = newControlPoints
+          .map((p, i) => ({p, i}))
+          .filter(({p}, i) => i !== index && p.position === newPos);
+        if (isStart || isEnd) {
+          // always remove if merging to start or end
+          newControlPoints.splice(mergedIndex, 1);
+          // adjust mergedIndex if needed
+          if (mergedIndex > index) mergedIndex -= 1;
+          return {...prev, controlPoints: newControlPoints};
+        } else if (sameAtPosition.length > 1) {
+          // Select correct point to remove (keep one)
+          let spliceIndex = -1;
+          if (sameAtPosition[0].i < index) {
+            //replace highest index
+            spliceIndex = Math.max(...sameAtPosition.map((x) => x.i));
+          } else {
+            //replace lowest index
+            spliceIndex = Math.min(...sameAtPosition.map((x) => x.i));
+          }
+          newControlPoints.splice(spliceIndex, 1);
+          // adjust mergedIndex if needed
+          if (spliceIndex > index) mergedIndex -= 1;
+          return {...prev, controlPoints: newControlPoints};
+        } else {
+          // let both points coexist at the same position
+        }
+      }
+
       newControlPoints[index] = {
         ...newControlPoints[index],
         position: newPos,
@@ -403,6 +449,50 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
       return {...prev, controlPoints: newControlPoints};
     });
     setMoveHandled(true);
+  };
+
+  const handleCanvasClick = (e: React.MouseEvent) => {
+    if (moveHandled) {
+      setMoveHandled(false);
+      return;
+    }
+    if (!canvasRef.current) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    let t = (e.clientX - rect.left) / rect.width;
+
+    // clamp between 0 and 1
+    t = Math.max(0, Math.min(1, t));
+
+    // compute actual position in the colorMap domain
+    const start = colorMap.startRange ?? 0;
+    const end = colorMap.endRange ?? 1;
+    const pos = start + t * (end - start);
+
+    console.log('Adding new control point at position:', pos);
+
+    // Add a new control point with color sampled from the gradient at that position
+    const colorAtPos = getColorAtPosition(colorMap, pos);
+
+    // find the correct insertion point without sorting
+    let insertIndex = colorMap.controlPoints.findIndex((cp) => cp.position > pos);
+    if (insertIndex === -1) insertIndex = colorMap.controlPoints.length;
+
+    // update the color map by INSERTING, not sorting
+    setColorMap((prev) => {
+      const newControlPoints = [
+        ...prev.controlPoints.slice(0, insertIndex),
+        {
+          position: pos,
+          color: colorAtPos,
+        },
+        ...prev.controlPoints.slice(insertIndex),
+      ];
+      return {
+        ...prev,
+        controlPoints: newControlPoints,
+      };
+    });
   };
 
   const [isDragging, setIsDragging] = useState(false);
@@ -418,6 +508,7 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
           background: getColorMapGradient(colorMap),
         }}
         title="Actual color map"
+        onClick={handleCanvasClick}
       >
         {/* Render control points inside canvas */}
         {colorMap.controlPoints.map((cp, index) => {
