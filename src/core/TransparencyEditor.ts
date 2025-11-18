@@ -2,7 +2,6 @@ import {AlphaStop, ColorMap, InterpolationMethod, TransferFunction} from './Type
 import * as d3Scale from 'd3-scale';
 import * as d3Color from 'd3-color';
 import * as d3Interpolate from 'd3-interpolate';
-import objectAssignDeep from 'object-assign-deep';
 import {getColorFromColorMapAt} from './convert';
 import Container from './Container';
 
@@ -91,7 +90,15 @@ export class TransparencyEditor extends Container {
 
     // Merge the options with the defaults.
     // !!! DON'T USE options AND defaultOptions AFTER THIS LINE !!!
-    const finalOptions = objectAssignDeep(defaultOption, options);
+    const finalOptions: TransparencyEditorOptions = {
+  ...defaultOption,
+  ...options,
+  initialAlphaStops: options?.initialAlphaStops ?? defaultOption.initialAlphaStops,
+  initialColorMap: {
+    ...defaultOption.initialColorMap,
+    ...options?.initialColorMap,
+  },
+};
 
     this.alphaStops = finalOptions.initialAlphaStops;
     this.sortControlPoints();

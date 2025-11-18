@@ -1,6 +1,5 @@
 import {ColorMap, ColorMapBin, ColorStop, InterpolationMethod} from './Types';
 import {ColorPicker} from './ColorPicker';
-import objectAssignDeep from 'object-assign-deep';
 import {getColorFromColorMapAt, getColorMapBins} from './convert';
 import * as d3Color from 'd3-color';
 import {drawControlPoint} from './draw';
@@ -105,7 +104,14 @@ export class ColorMapEditor extends Container {
 
     // Merge the options with the defaults.
     // !!! DON'T USE options AND defaultOptions AFTER THIS LINE !!!
-    const finalOptions = objectAssignDeep(defaultOptions, options);
+    const finalOptions: ColorMapEditorOptions = {
+  ...defaultOptions,
+  ...options,
+  initialColorMap: {
+    ...defaultOptions.initialColorMap,
+    ...options?.initialColorMap,
+  },
+};
 
     this.colorStops = finalOptions.initialColorMap.colorStops;
     this.sortControlPoints();
@@ -225,7 +231,7 @@ export class ColorMapEditor extends Container {
     this.colorStops = colorMap.colorStops;
     this.sortControlPoints();
     this.discrete = colorMap.discrete;
-    this.bins = Math.max(colorMap.bins || 0, 0);
+    this.bins = Math.max(colorMap.bins ?? 0, 0);
     this.interpolationMethod = colorMap.interpolationMethod;
 
     if (this.discreteElement && this.binsElement) {
@@ -599,7 +605,7 @@ export class ColorMapEditor extends Container {
    * Depending on the users options this method creates a dropdown for selecting the interpolation method, a checkbox
    * for toggling if the color map is discrete and a number input for the number of bins.
    */
-  private setUpInputElements(finalOptions) {
+  private setUpInputElements(finalOptions : ColorMapEditorOptions) {
     // If no controls are enabled we don't add anything to the DOM.
     if (!finalOptions.interpolationMethodsEditable && !finalOptions.binSelectorEditable) {
       return;
@@ -634,11 +640,13 @@ export class ColorMapEditor extends Container {
 
       this.interpolationMethodElement.value = this.interpolationMethod;
 
+      /* eslint-disable  @typescript-eslint/no-unsafe-assignment */
       this.interpolationMethodElement.addEventListener('change', () => {
         this.interpolationMethod = InterpolationMethod[this.interpolationMethodElement.value];
         this.draw();
         this.sendUpdates();
       });
+      /* eslint-enable  @typescript-eslint/no-unsafe-assignment */
 
       label.appendChild(this.interpolationMethodElement);
       settingsContainer.appendChild(label);

@@ -27,16 +27,6 @@ function App() {
 
       {/* Main Content */}
       <main className="flex grow flex-col items-center justify-center p-6">
-        {/* Color Map Legacy*/}
-        <div className="w-full bg-base-100 rounded-xl shadow-xl border border-base-300 relative p-6 m-5">
-          <div className="absolute -top-3 left-4 bg-base-100 px-3 text-sm font-semibold text-secondary border border-base-300 rounded-md">
-            Color Map Legacy
-          </div>
-          <div className="mt-2">
-            <ColorMapComponent />
-          </div>
-        </div>
-
         {/* Color Map React */}
         <div className="w-full bg-base-100 rounded-xl shadow-xl border border-base-300 relative p-6 m-5">
           <div className="absolute -top-3 left-4 bg-base-100 px-3 text-sm font-semibold text-secondary border border-base-300 rounded-md">
@@ -44,17 +34,6 @@ function App() {
           </div>
           <div className="mt-2">
             <ColorMapReact />
-          </div>
-        </div>
-
-        {/* Color Picker Legacy*/}
-        <div className="w-full bg-base-100 rounded-xl shadow-xl border border-base-300 relative p-6 m-5">
-          <div className="absolute -top-3 left-4 bg-base-100 px-3 text-sm font-semibold text-secondary border border-base-300 rounded-md">
-            Color Picker Legacy
-          </div>
-          {/* Inner Content */}
-          <div className="mt-2">
-            <ColorPickerComponent />
           </div>
         </div>
 
@@ -67,6 +46,27 @@ function App() {
           {/* Inner Content */}
           <div className="mt-2">
             <ColorPickerReact />
+          </div>
+        </div>
+
+        {/* Color Map Legacy*/}
+        <div className="w-full bg-base-100 rounded-xl shadow-xl border border-base-300 relative p-6 m-5">
+          <div className="absolute -top-3 left-4 bg-base-100 px-3 text-sm font-semibold text-secondary border border-base-300 rounded-md">
+            Color Map Legacy
+          </div>
+          <div className="mt-2">
+            <ColorMapComponent />
+          </div>
+        </div>
+
+        {/* Color Picker Legacy*/}
+        <div className="w-full bg-base-100 rounded-xl shadow-xl border border-base-300 relative p-6 m-5">
+          <div className="absolute -top-3 left-4 bg-base-100 px-3 text-sm font-semibold text-secondary border border-base-300 rounded-md">
+            Color Picker Legacy
+          </div>
+          {/* Inner Content */}
+          <div className="mt-2">
+            <ColorPickerComponent />
           </div>
         </div>
       </main>

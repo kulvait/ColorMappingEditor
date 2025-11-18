@@ -1,7 +1,6 @@
 import {ColorMapEditor} from './ColorMapEditor';
 import {TransparencyEditor} from './TransparencyEditor';
 import {AlphaStop, ColorMap, ColorMapBin, ColorStop, TransferFunction} from './Types';
-import objectAssignDeep from 'object-assign-deep';
 
 /**
  * This component creates a complete transfer function editor, combining the features from the transparency and color
@@ -75,7 +74,7 @@ export class TransferFunctionEditor {
 
     // Merge the options with the defaults.
     // !!! DON'T USE options AND defaultOptions AFTER THIS LINE !!!
-    const finalOptions = objectAssignDeep(defaultOptions, options);
+    const finalOptions = { ...options };
 
     this.container.classList.add('tfe-transfer-function-editor');
 

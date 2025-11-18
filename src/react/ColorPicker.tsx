@@ -5,7 +5,19 @@ import {hexToColor, clamp} from '../utils';
 
 import './ColorPicker.css';
 
-const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, onConfirm = null}) => {
+interface ColorPickerProps {
+  height?: number;
+  initHexColor?: string;
+  onChange?: (color: Color) => void;
+  onConfirm?: (color: Color) => void;
+}
+
+const ColorPicker: React.FC<ColorPickerProps> = ({
+  height = 256,
+  initHexColor = '#ff0000',
+  onChange,
+  onConfirm
+}) => {
   const initColor = chroma.valid(initHexColor) ? hexToColor(initHexColor) : hexToColor('#ff0000');
   const [color, setColor] = useState<Color>(initColor);
   const hAreaDivRef = useRef<HTMLDivElement | null>(null);
@@ -16,8 +28,8 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
   const hueWidth = 16;
   const inputGap = 3;
   const inputWidth = 75;
-  const width = height + hueGap + hueWidth + inputGap + inputWidth;
-  console.log('ColorPicker width:', width);
+  const width = height + hueGap + hueWidth + inputGap + inputWidth;//For height=256 width=353
+  //console.log('ColorPicker width:', width);
 
   const cpRef = useRef(null);
 
@@ -134,9 +146,9 @@ const ColorPicker = ({height = 256, initHexColor = '#ff0000', onChange = null, o
     handleHClick(event); // Reuse the click handler logic
   };
 
-  useEffect(() => {
-    console.log(JSON.stringify(color, null, 2));
-  }, [color]); // Only run once when the component mounts
+  //useEffect(() => {
+  //  console.log(JSON.stringify(color, null, 2));
+  //}, [color]);
 
   const [isDragging, setIsDragging] = useState(false);
 

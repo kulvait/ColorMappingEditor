@@ -1,15 +1,15 @@
 import React, {useRef, useState} from 'react';
 import ColorMapEditor from './ColorMapEditor';
-import {colorMapToColorMapString} from './ColorMapEditor';
+import {colorMapToColorMapString, type ColorMap} from 'color-mapping-editor';
 
 //import ColorPicker from './ColorPicker'; // Adjust the import path as necessary
 
 const ColorMapReact = () => {
   const [textJson, setTextJson] = useState('{}'); // Color JSON as a string
   const mapRef = useRef(null);
-  const onChangeHandler = (newColorMap) => {
+  const onChangeHandler = (newColorMap : ColorMap) => {
     setTextJson(JSON.stringify(colorMapToColorMapString(newColorMap), null, 2)); // Pretty-print JSON
-    console.log('Selected Color Map:', newColorMap);
+    //console.log('Selected Color Map:', newColorMap);
   };
 
   return (

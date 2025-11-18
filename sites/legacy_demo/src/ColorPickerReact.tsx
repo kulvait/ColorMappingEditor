@@ -10,7 +10,7 @@ const ColorPickerReact = ({initHexColor = '#00FF00'}) => {
   const [colorJson, setColorJson] = useState('{}'); // Color JSON as a string
   const cpRef = useRef(null);
 
-  const onChangeHandler = (newColor) => {
+  const onChangeHandler = (newColor :Color) => {
     setColor(newColor); // Update the color state for display
     setColorJson(JSON.stringify(newColor, null, 2)); // Update color as JSON string
     console.log('Selected Color:', newColor);

@@ -9,9 +9,12 @@ export {default as ColorPicker} from './react/ColorPicker';
 
 // --- Utility exports
 export {hexToColor} from './utils';
+export {getColorAtPosition} from './utils';
+export {colorMapStringToColorMap} from './utils';
+export {colorMapToColorMapString} from './utils';
 
 // --- Type exports
-export type {RGB, HSV, Color} from './types';
+export type {RGB, HSV, Color, ControlPoint, ColorMap, ControlPointString, ColorMapString} from './types';
 
 // --- Constant exports
 export {INVALID_COLOR} from './types';

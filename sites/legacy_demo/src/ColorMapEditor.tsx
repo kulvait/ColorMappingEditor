@@ -1,127 +1,12 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {ColorPicker} from 'color-mapping-editor';
-import type {Color} from 'color-mapping-editor';
-import {hexToColor} from 'color-mapping-editor';
-import {INVALID_COLOR} from 'color-mapping-editor';
+import type {Color, ColorMap, ColorMapString} from 'color-mapping-editor';
+import {getColorAtPosition} from 'color-mapping-editor';
+import {colorMapStringToColorMap} from 'color-mapping-editor';
 import {ColorInterpolation} from 'color-mapping-editor';
 
-import chroma from 'chroma-js';
 
 import './ColorMapEditor.css';
-
-/** A single color stop in the color map */
-export interface ControlPoint {
-  /** Full color information */
-  color: Color;
-  /** Position along the gradient (relative to startRange/endRange) */
-  position: number;
-}
-
-// Represents the initial color map definition
-/** Full color-map definition */
-export interface ColorMap {
-  /** Ordered list of color stops */
-  controlPoints: ControlPoint[];
-
-  /** Interpolation method between color stops */
-  interpolationMethod: ColorInterpolation;
-
-  /** Domain range covered by the color map */
-  startRange?: number;
-  endRange?: number;
-}
-
-/** A single color stop in the color map */
-interface ControlPointString {
-  color: string;
-  position: number;
-}
-
-interface ColorMapString {
-  controlPoints: ControlPointString[];
-  interpolationMethod: ColorInterpolation;
-  startRange?: number;
-  endRange?: number;
-}
-
-export function getColorAtPosition(colorMap: ColorMap, position: number): Color {
-  const {controlPoints, interpolationMethod, startRange = 0, endRange = 1} = colorMap;
-
-  if (!controlPoints || controlPoints.length === 0) {
-    return '#000000'; // fallback
-  }
-
-  // Normalize position to [0,1] range of the gradient
-  const t = (position - startRange) / (endRange - startRange === 0 ? 1 : endRange - startRange);
-
-  // Clamp
-  const u = Math.min(1, Math.max(0, t));
-
-  // If only one stop → trivial case
-  if (controlPoints.length === 1) {
-    console.log('Find color of ', controlPoints[0].color);
-    return controlPoints[0].color;
-  }
-
-  console.log(controlPoints);
-
-  // Find surrounding control points
-  let left = controlPoints[0];
-  let right = controlPoints[controlPoints.length - 1];
-
-  for (let i = 0; i < controlPoints.length - 1; i++) {
-    const a = controlPoints[i];
-    const b = controlPoints[i + 1];
-
-    if (u >= a.position && u <= b.position) {
-      left = a;
-      right = b;
-      break;
-    }
-  }
-
-  // Normalize between local interval
-  const localT = (u - left.position) / (right.position - left.position === 0 ? 1 : right.position - left.position);
-
-  const colors = [left.color, right.color];
-
-  // Pick chroma interpolation mode
-  const mode = interpolationMethod.toLowerCase(); // "rgb", "lab", "hsl", etc.
-
-  return hexToColor(chroma.mix(colors[0].hex, colors[1].hex, localT, mode).hex());
-}
-
-/** Converts a ColorMapString → ColorMap (parsed color objects) */
-export const colorMapStringToColorMap = (map: ColorMapString): ColorMap => {
-  return {
-    controlPoints: map.controlPoints.map((cp) => {
-      const color = hexToColor(cp.color);
-      if (color.hex === INVALID_COLOR.hex && color.isDark === INVALID_COLOR.isDark) {
-        console.warn(`Invalid color string "${cp.color}" in ColorMapString; using fallback color.`);
-      }
-      return {
-        position: cp.position,
-        color,
-      };
-    }),
-    interpolationMethod: map.interpolationMethod,
-    startRange: map.startRange,
-    endRange: map.endRange,
-  };
-};
-
-/** Converts a ColorMap → ColorMapString (string colors only) */
-export const colorMapToColorMapString = (map: ColorMap): ColorMapString => {
-  return {
-    controlPoints: map.controlPoints.map((cp) => ({
-      position: cp.position,
-      color: cp.color.hex,
-    })),
-    interpolationMethod: map.interpolationMethod,
-    startRange: map.startRange,
-    endRange: map.endRange,
-  };
-};
 
 export interface ColorLookupEntry {
   /** The color assigned to this bin. */
@@ -138,7 +23,7 @@ export interface ColorLookupEntry {
  * A lookup table generated from a ColorMap for discrete rendering or classification.
  */
 export interface ColorLookupTable {
-  ColorLookupEntry: Entries[];
+  entries: ColorLookupEntry[];
   entryCount: number;
 }
 
@@ -184,10 +69,6 @@ const defaultOptions: ColorMapEditorOptions = {
     startRange: 0, // optional
     endRange: 1, // optional
   },
-  showStopNumbers: false,
-  interpolationMethodsEditable: true,
-  binSelectorEditable: true,
-  controlPointSize: 7,
   width: 500,
   stripHeight: 50,
   showRuler: true,
@@ -268,10 +149,6 @@ function renderRulerTicksNormalized(start: number, end: number, steps: number) {
 const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
   width = defaultOptions.width,
   stripHeight = defaultOptions.stripHeight,
-  showStopNumbers = defaultOptions.showStopNumbers,
-  interpolationMethodsEditable = defaultOptions.interpolationMethodsEditable,
-  binSelectorEditable = defaultOptions.binSelectorEditable,
-  controlPointSize = defaultOptions.controlPointSize,
   initialColorMap = defaultOptions.initialColorMap,
   showRuler = defaultOptions.showRuler,
   onChange,
@@ -307,7 +184,6 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
   useEffect(() => {
     if (onChange && typeof onChange === 'function') {
       onChange(colorMap);
-      console.log('ColorMapEditor: onChange called with colorMap:', colorMap);
     }
   }, [colorMap, onChange]);
 
@@ -338,7 +214,6 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
       return;
     }
 
-    console.log('Purge index:', index);
     // Right click → remove control point at index
     setColorMap((prev) => ({
       ...prev,
@@ -363,8 +238,6 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
       e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
 
     if (!isInside) return;
-
-    console.log('Opening color picker at point index:', index);
 
     // get canvas rect for positioning picker
     const canvasRect = canvasRef.current.getBoundingClientRect();
@@ -456,8 +329,6 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
     const start = colorMap.startRange ?? 0;
     const end = colorMap.endRange ?? 1;
     const pos = start + t * (end - start);
-
-    console.log('Adding new control point at position:', pos);
 
     // Add a new control point with color sampled from the gradient at that position
     const colorAtPos = getColorAtPosition(colorMap, pos);
@@ -560,7 +431,7 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
                 pointerDownIndicesRef.current = colorMap.controlPoints
                   .map((p, i) => [p, i]) // keep both
                   .filter(([p]) => p.position === pos) // filter by p
-                  .map(([_, i]) => i); // extract index
+                  .map(([, i]) => i) // _unused signals intentional discard
                 setIsDragging(true); // start hiding cursor
               }}
               onPointerMove={(e) => {
@@ -604,10 +475,10 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
           <ColorPicker
             key={pickerPointIndex} //Forces remount
             initHexColor={pickerColor.hex}
-            onChange={(newColor) => {
+            onChange={(newColor : Color) => {
               setPickerColor(newColor); // update picker preview
             }}
-            onConfirm={(newColor) => {
+            onConfirm={(newColor : Color) => {
               // Update the actual color in your colorMap.controlPoints
               setPickerColor(newColor);
               setPickerPointIndex(null); // close picker

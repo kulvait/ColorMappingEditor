@@ -38,3 +38,33 @@ export enum ColorInterpolation {
   HSV = 'HSV',
   LAB = 'LAB',
 }
+
+/** A single color control point in the color map */
+/** Include color and position along the gradient (relative to startRange/endRange) */
+export interface ControlPoint {
+  color: Color;
+  position: number;
+}
+
+/** Full color-map specification */
+/** Contains ordered list of color stops, interpolation and range */
+export interface ColorMap {
+  controlPoints: ControlPoint[];
+  interpolationMethod: ColorInterpolation;
+  startRange: number;
+  endRange: number;
+}
+
+/** A single color stop in the color map */
+export interface ControlPointString {
+  color: string;
+  position: number;
+}
+
+/** Full color-map specification with colors as strings */
+export interface ColorMapString {
+  controlPoints: ControlPointString[];
+  interpolationMethod: ColorInterpolation;
+  startRange?: number;
+  endRange?: number;
+}

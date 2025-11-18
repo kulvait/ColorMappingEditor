@@ -1,6 +1,6 @@
 import * as d3Interpolate from 'd3-interpolate';
-import * as d3Hsv from 'd3-hsv';
 import {ColorMap, ColorMapBin, InterpolationMethod} from './Types';
+import * as d3Hsv from 'd3-hsv';
 import * as d3Scale from 'd3-scale';
 
 const colorRangeCache = new WeakMap<ColorMap, d3Scale.ScaleLinear<string, string>>();
