@@ -59,7 +59,8 @@ export function getColorAtPosition(colorMap: ColorMap, position: number): Color 
 
   // If only one stop → trivial case
   if (controlPoints.length === 1) {
-    return chroma(controlPoints[0].color).hex();
+    console.log('Find color of ', controlPoints[0].color);
+    return chroma(controlPoints[0].color.hex).hex();
   }
 
   // Find surrounding control points
@@ -377,17 +378,15 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
     if (e.buttons !== 1) return; // only if left button is pressed
 
     // throttle
-    if (e.timeStamp - lastPointMoveTimeRef.current < 50) return;
+    if (e.timeStamp - lastPointMoveTimeRef.current < 16) return;
     lastPointMoveTimeRef.current = e.timeStamp;
 
     if (!canvasRef.current) return;
 
+    //Compute new position
     const rect = canvasRef.current.getBoundingClientRect();
     let newT = (e.clientX - rect.left) / rect.width;
-
-    // clamp between 0 and 1
     newT = Math.max(0, Math.min(1, newT));
-
     // compute actual position in the colorMap domain
     const start = colorMap.startRange ?? 0;
     const end = colorMap.endRange ?? 1;
@@ -396,9 +395,26 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
     // update the colorMap state immutably
     setColorMap((prev) => {
       const newControlPoints = [...prev.controlPoints];
-      //Restrict movement based on neighbors
-      const leftNeighbor = newControlPoints[index - 1];
-      const rightNeighbor = newControlPoints[index + 1];
+      if (newPos > pointerDownPosRef.current) {
+        index = Math.max(...pointerDownIndicesRef.current);
+      } else {
+        index = Math.min(...pointerDownIndicesRef.current);
+      }
+
+      // --- Sanity: force all other points at pointerDownPos to stay at pointerDownPos ---
+      pointerDownIndicesRef.current.forEach((i) => {
+        if (i !== index) {
+          newControlPoints[i] = {
+            ...newControlPoints[i],
+            position: pointerDownPosRef.current,
+          };
+        }
+      });
+
+      const prevPos = newControlPoints[index].position;
+      //Clamp newPos based on neighbors
+      const leftNeighbor = colorMap.controlPoints[index - 1];
+      const rightNeighbor = colorMap.controlPoints[index + 1];
 
       // --- NEW LOGIC: clamp outermost points to map range ---
       const minLimit = leftNeighbor ? leftNeighbor.position : start;
@@ -407,40 +423,7 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
       // clamp to allowed range
       newPos = Math.max(minLimit, Math.min(maxLimit, newPos));
 
-      let mergedIndex = newControlPoints.findIndex((cp, i) => {
-        i !== index && cp.position === newPos;
-      });
-      //Remove point if there are more than 2 points and we are merging or we merge to a boundary
-      if (mergedIndex !== -1 && newControlPoints.length > 2) {
-        const isStart = index === 0 && newPos === start;
-        const isEnd = index === newControlPoints.length - 1 && newPos === end;
-        const sameAtPosition = newControlPoints
-          .map((p, i) => ({p, i}))
-          .filter(({p}, i) => i !== index && p.position === newPos);
-        if (isStart || isEnd) {
-          // always remove if merging to start or end
-          newControlPoints.splice(mergedIndex, 1);
-          // adjust mergedIndex if needed
-          if (mergedIndex > index) mergedIndex -= 1;
-          return {...prev, controlPoints: newControlPoints};
-        } else if (sameAtPosition.length > 1) {
-          // Select correct point to remove (keep one)
-          let spliceIndex = -1;
-          if (sameAtPosition[0].i < index) {
-            //replace highest index
-            spliceIndex = Math.max(...sameAtPosition.map((x) => x.i));
-          } else {
-            //replace lowest index
-            spliceIndex = Math.min(...sameAtPosition.map((x) => x.i));
-          }
-          newControlPoints.splice(spliceIndex, 1);
-          // adjust mergedIndex if needed
-          if (spliceIndex > index) mergedIndex -= 1;
-          return {...prev, controlPoints: newControlPoints};
-        } else {
-          // let both points coexist at the same position
-        }
-      }
+      if (newPos === prevPos) return prev; // no change after clamping
 
       newControlPoints[index] = {
         ...newControlPoints[index],
@@ -495,7 +478,45 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
     });
   };
 
+  const consolidateColorMap = () => {
+    setColorMap((prev) => {
+      const newControlPoints = [...prev.controlPoints];
+      const indicesToRemove: number[] = [];
+      const start = prev.startRange ?? 0;
+      const end = prev.endRange ?? 1;
+
+      for (let i = 0; i < newControlPoints.length; i++) {
+        const current = newControlPoints[i];
+        const prevPoint = newControlPoints[i - 1];
+        const nextPoint = newControlPoints[i + 1];
+
+        if (current.position === start && nextPoint?.position === start) {
+          // Remove duplicates at start: keep last
+          indicesToRemove.push(i);
+        } else if (current.position === end && prevPoint?.position === end) {
+          // Remove duplicates at end: keep first
+          indicesToRemove.push(i);
+        } else if (
+          current.position !== start &&
+          current.position !== end &&
+          prevPoint?.position === current.position &&
+          nextPoint?.position === current.position
+        ) {
+          // Remove middle duplicates in internal points
+          indicesToRemove.push(i);
+        }
+      }
+
+      // Remove indices in descending order to avoid reindexing issues
+      indicesToRemove.sort((a, b) => b - a).forEach((i) => newControlPoints.splice(i, 1));
+
+      return {...prev, controlPoints: newControlPoints};
+    });
+  };
+
   const [isDragging, setIsDragging] = useState(false);
+  const pointerDownPosRef = useRef(null);
+  const pointerDownIndicesRef = useRef([]);
   return (
     <div className="color-map-editor-react-root" style={{width: `${width}px`, height: `${height}px`}}>
       {/* Strip with actual interpolation */}
@@ -529,6 +550,12 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
               onPointerDown={(e) => {
                 e.preventDefault();
                 e.currentTarget.setPointerCapture(e.pointerId);
+                const pos = colorMap.controlPoints[index].position;
+                pointerDownPosRef.current = pos;
+                pointerDownIndicesRef.current = colorMap.controlPoints
+                  .map((p, i) => [p, i]) // keep both
+                  .filter(([p]) => p.position === pos) // filter by p
+                  .map(([_, i]) => i); // extract index
                 setIsDragging(true); // start hiding cursor
               }}
               onPointerMove={(e) => {
@@ -538,6 +565,7 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
                 e.preventDefault();
                 e.currentTarget.releasePointerCapture(e.pointerId);
                 setIsDragging(false); // restore cursor
+                consolidateColorMap();
               }}
               onContextMenu={(e) => handleRemoveIndex(e, index)}
               title={`Index: ${index}, Position: ${formatSmart(cp.position)}, Color: ${pointColor.hex}`}
