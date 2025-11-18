@@ -1,6 +1,7 @@
 import {AlphaStop, ColorMap, InterpolationMethod, TransferFunction} from './Types';
 import * as d3Scale from 'd3-scale';
 import * as d3Color from 'd3-color';
+import { RGBColor } from 'd3-color';
 import * as d3Interpolate from 'd3-interpolate';
 import {getColorFromColorMapAt} from './convert';
 import Container from './Container';
@@ -157,7 +158,7 @@ export class TransparencyEditor extends Container {
 
   /** Returns the color, including transparency, at the given stop. */
   public getRGBA(stop: number): string {
-    const color = d3Color.rgb(this.getRGB(stop));
+    const color : RGBColor  = d3Color.rgb(this.getRGB(stop));
     color.opacity = this.getAlpha(stop);
     return color.formatHex8();
   }
