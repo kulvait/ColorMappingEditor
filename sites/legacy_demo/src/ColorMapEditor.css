@@ -1,6 +1,6 @@
 .color-map-editor-react-root {
   position: relative;
-  border: 1px solid #ef4444;
+  /*border: 1px solid #ef4444;*/
   background-color: #fff;
   box-sizing: border-box;
 }

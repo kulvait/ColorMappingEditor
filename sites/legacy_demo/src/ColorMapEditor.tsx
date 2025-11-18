@@ -60,8 +60,10 @@ export function getColorAtPosition(colorMap: ColorMap, position: number): Color 
   // If only one stop → trivial case
   if (controlPoints.length === 1) {
     console.log('Find color of ', controlPoints[0].color);
-    return chroma(controlPoints[0].color.hex).hex();
+    return controlPoints[0].color;
   }
+
+  console.log(controlPoints);
 
   // Find surrounding control points
   let left = controlPoints[0];
@@ -85,7 +87,6 @@ export function getColorAtPosition(colorMap: ColorMap, position: number): Color 
 
   // Pick chroma interpolation mode
   const mode = interpolationMethod.toLowerCase(); // "rgb", "lab", "hsl", etc.
-  console.log('Using ', mode, 'and', localT);
 
   return hexToColor(chroma.mix(colors[0].hex, colors[1].hex, localT, mode).hex());
 }
@@ -332,6 +333,10 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
       e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
 
     if (!isInside) return;
+
+    if (colorMap.controlPoints.length < 2) {
+      return;
+    }
 
     console.log('Purge index:', index);
     // Right click → remove control point at index
