@@ -1,9 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {ColorPicker} from 'color-mapping-editor';
-import type {Color, ColorMap, ColorMapString} from 'color-mapping-editor';
-import {getColorAtPosition} from 'color-mapping-editor';
-import {colorMapStringToColorMap} from 'color-mapping-editor';
-import {ColorInterpolation} from 'color-mapping-editor';
+import {default as ColorPicker} from './ColorPicker';
+import type {Color, ColorMap, ColorMapString, ControlPoint} from '../types';
+import {ColorInterpolation} from '../types';
+import {getColorAtPosition, colorMapStringToColorMap} from '../utils';
 
 
 import './ColorMapEditor.css';
@@ -429,7 +428,7 @@ const ColorMapEditor: React.FC<Partial<ColorMapEditorOptions>> = ({
                 const pos = colorMap.controlPoints[index].position;
                 pointerDownPosRef.current = pos;
                 pointerDownIndicesRef.current = colorMap.controlPoints
-                  .map((p, i) => [p, i]) // keep both
+                  .map<[ControlPoint, number]>((p, i) => [p, i])// keep ControlPoint and index
                   .filter(([p]) => p.position === pos) // filter by p
                   .map(([, i]) => i) // _unused signals intentional discard
                 setIsDragging(true); // start hiding cursor

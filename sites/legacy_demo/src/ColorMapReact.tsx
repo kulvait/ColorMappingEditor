@@ -1,5 +1,5 @@
 import React, {useRef, useState} from 'react';
-import ColorMapEditor from './ColorMapEditor';
+import {ColorMapEditor} from 'color-mapping-editor';
 import {colorMapToColorMapString, type ColorMap} from 'color-mapping-editor';
 
 //import ColorPicker from './ColorPicker'; // Adjust the import path as necessary

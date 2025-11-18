@@ -6,6 +6,7 @@ export {TransparencyEditor} from './core/TransparencyEditor.js';
 
 // --- React exports
 export {default as ColorPicker} from './react/ColorPicker';
+export {default as ColorMapEditor} from './react/ColorMapEditor';
 
 // --- Utility exports
 export {hexToColor} from './utils';
